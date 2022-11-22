@@ -128,7 +128,7 @@ pub struct ClientFeature {
     pub enabled: bool,
     pub stale: Option<bool>,
     pub impression_data: Option<bool>,
-    pub project: String,
+    pub project: Option<String>,
     pub strategies: Option<Vec<Strategy>>,
     pub variants: Option<Vec<Variant>>,
 }
@@ -139,4 +139,19 @@ pub struct ClientFeatures {
     pub features: Vec<ClientFeature>,
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    pub fn can_parse_legacy_format() {
+        let content =
+            fs::read_to_string("./examples/01-simple-examples.json").expect("Could not read file");
+        let client_features = serde_json::from_str::<ClientFeatures>(&content)
+            .expect("Could not parse to expected format");
+        assert_eq!(client_features.version, 1);
+    }
 }
