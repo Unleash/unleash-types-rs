@@ -34,10 +34,13 @@ pub enum Operator {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct Constraint {
     pub context_name: String,
     pub operator: Operator,
+    #[serde(default)]
     pub case_insensitive: bool,
+    #[serde(default)]
     pub inverted: bool,
     pub values: Option<Vec<String>>,
     pub value: Option<String>,
@@ -102,7 +105,7 @@ pub struct Variant {
     pub name: String,
     pub weight: i32,
     pub weight_type: Option<WeightType>,
-    pub stickiness: String,
+    pub stickiness: Option<String>,
     pub payload: Option<Payload>,
     pub overrides: Option<Vec<Override>>,
 }
@@ -111,8 +114,6 @@ pub struct Variant {
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
-    pub name: String,
-    pub description: Option<String>,
     pub constraints: Vec<Constraint>,
 }
 
@@ -144,14 +145,31 @@ pub struct ClientFeatures {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use std::fs;
+    use test_case::test_case;
+
+    #[test_case("01-simple-examples"; "can parse legacy format")]
+    #[test_case("08-variants"; "can parse variants")]
+    #[test_case("14-constraint-semver-operators"; "can parse advanced constraints")]
+    #[test_case("15-global-constraints"; "can parse segments")]
+    pub fn run_parse_test(file_path: &str) {
+        let content = fs::read_to_string(format!("./examples/{}.json", file_path))
+            .expect("Could not read file");
+        serde_json::from_str::<ClientFeatures>(&content)
+            .expect("Could not parse to expected format");
+    }
 
     #[test]
-    pub fn can_parse_legacy_format() {
-        let content =
-            fs::read_to_string("./examples/01-simple-examples.json").expect("Could not read file");
-        let client_features = serde_json::from_str::<ClientFeatures>(&content)
-            .expect("Could not parse to expected format");
-        assert_eq!(client_features.version, 1);
+    pub fn materializes_operator_in_constraint() {
+        let string_constraint = json!({
+            "contextName": "environment",
+            "operator": "STRING_IS_IP_ADDRESS",
+            "value": "bob",
+        });
+
+        let constraint: Result<Constraint, serde_json::Error> =
+            serde_json::from_value(string_constraint);
+        assert!(constraint.is_err());
     }
 }
