@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -13,12 +13,12 @@ pub struct Query {
     pub inline_segment_constraints: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
     NotIn,
     In,
-    StrEndWith,
+    StrEndsWith,
     StrStartsWith,
     StrContains,
     NumEq,
@@ -31,6 +31,34 @@ pub enum Operator {
     SemverEq,
     SemverLt,
     SemverGt,
+    Unknown(String),
+}
+
+impl<'de> Deserialize<'de> for Operator {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(match s.as_str() {
+            "NOT_IN" => Operator::NotIn,
+            "IN" => Operator::In,
+            "STR_ENDS_WITH" => Operator::StrEndsWith,
+            "STR_STARTS_WITH" => Operator::StrStartsWith,
+            "STR_CONTAINS" => Operator::StrContains,
+            "NUM_EQ" => Operator::NumEq,
+            "NUM_GT" => Operator::NumGt,
+            "NUM_GTE" => Operator::NumGte,
+            "NUM_LT" => Operator::NumLt,
+            "NUM_LTE" => Operator::NumLte,
+            "DATE_AFTER" => Operator::DateAfter,
+            "DATE_BEFORE" => Operator::DateBefore,
+            "SEMVER_EQ" => Operator::SemverEq,
+            "SEMVER_LT" => Operator::SemverLt,
+            "SEMVER_GT" => Operator::SemverGt,
+            _ => Operator::Unknown(s.into()),
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

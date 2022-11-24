@@ -1,0 +1,401 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "name": "F1.startsWith",
+      "description": "startsWith",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "customField",
+              "operator": "STR_STARTS_WITH",
+              "values": ["some-string"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F2.startsWith.multiple",
+      "description": "endsWith",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "customField",
+              "operator": "STR_STARTS_WITH",
+              "values": ["e1", "e2"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F3.endsWith",
+      "description": "endsWith",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "email",
+              "operator": "STR_ENDS_WITH",
+              "values": ["@some-email.com"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F3.endsWith.ignoringCase",
+      "description": "endsWith",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "email",
+              "operator": "STR_ENDS_WITH",
+              "values": ["@some-email.com"],
+              "caseInsensitive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F4.contains",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "email",
+              "operator": "STR_CONTAINS",
+              "values": ["email"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F4.contains.inverted",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "email",
+              "operator": "STR_CONTAINS",
+              "values": ["email"],
+              "inverted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numEq",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_EQ",
+              "value": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numEq.float",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_EQ",
+              "value": "12.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numEq.inverted",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_EQ",
+              "value": "12",
+              "inverted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numGT",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_GT",
+              "value": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numGTE",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_GTE",
+              "value": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numLT",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_LT",
+              "value": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5.numLTE",
+      "description": "contains",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_LTE",
+              "value": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F6.number-range",
+      "description": "range of numbers",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "someValue",
+              "operator": "NUM_GT",
+              "value": "12"
+            },
+            {
+              "contextName": "someValue",
+              "operator": "NUM_LT",
+              "value": "16"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7.dateAfter",
+      "description": "dates",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_AFTER",
+              "value": "2022-01-29T13:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7.dateBefore",
+      "description": "dates",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_BEFORE",
+              "value": "2022-01-29T13:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7.date-range",
+      "description": "dates",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_AFTER",
+              "value": "2022-01-22T13:00:00.000Z"
+            },
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_BEFORE",
+              "value": "2022-01-29T13:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7.date-with-timezone",
+      "description": "dates",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_AFTER",
+              "value": "2022-01-22T13:00:00.000+02:00"
+            },
+            {
+              "contextName": "currentTime",
+              "operator": "DATE_BEFORE",
+              "value": "2022-01-22T14:00:00.000+02:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7.invalid-operator",
+      "description": "invalid",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "customField",
+              "operator": "NOT_A_VALID_OPERATOR",
+              "value": "2022-01-22T13:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F8.missing-field.IN",
+      "description": "missing field",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "customFieldMissing",
+              "operator": "IN",
+              "values": ["s1"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F8.missing-field.NOT_IN",
+      "description": "missing field",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "default",
+          "parameters": {},
+          "constraints": [
+            {
+              "contextName": "customFieldMissing",
+              "operator": "NOT_IN",
+              "values": ["s1"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
