@@ -56,7 +56,7 @@ impl<'de> Deserialize<'de> for Operator {
             "SEMVER_EQ" => Operator::SemverEq,
             "SEMVER_LT" => Operator::SemverLt,
             "SEMVER_GT" => Operator::SemverGt,
-            _ => Operator::Unknown(s.into()),
+            _ => Operator::Unknown(s),
         })
     }
 }
