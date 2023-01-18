@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/Unleash/unleash-types-rs/badge.svg?branch=main)](https://coveralls.io/github/Unleash/unleash-types-rs?branch=main)
+
 # Unleash types
 
 This project represents Unleash OpenAPI types as Rust structs.

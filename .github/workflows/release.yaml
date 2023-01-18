@@ -1,0 +1,43 @@
+---
+name: Release
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Bump patch/minor/major
+        default: "patch"
+        type: "string"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: ⚡ Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup
+            target
+          key: release-${{ runner.os }}-stable
+          restore-keys: |
+            release-${{ runner.os }}-
+      - name: Install rust
+        run: |
+          rustup install stable
+          rustup default stable
+          rustup show
+      - name: Install required cargo packages for creating release
+        run: |
+          cargo install cargo-smart-release
+      - name: Run cargo release process
+        run: |
+          cargo smart-release --update-crates-index --bump ${{ github.event.inputs.version }}
