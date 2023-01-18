@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 pub struct ToggleStats {
     pub no: u64,
     pub yes: u64,
@@ -51,14 +52,14 @@ impl ToggleStats {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 pub struct MetricBucket {
     pub start: DateTime<Utc>,
     pub stop: DateTime<Utc>,
     pub toggles: HashMap<String, ToggleStats>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientMetrics {
     pub app_name: String,
@@ -67,7 +68,7 @@ pub struct ClientMetrics {
     pub instance_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientApplication {
     pub app_name: String,
