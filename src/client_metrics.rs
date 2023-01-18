@@ -55,7 +55,7 @@ pub struct ClientMetrics {
     pub instance_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ClientApplication {
     pub app_name: String,
     pub environment: Option<String>,
@@ -94,6 +94,15 @@ impl ClientApplication {
     /// Will keep all set fields from self, overwriting None with Somes from other
     /// Will merge strategies from self and other, deduplicating
     pub fn merge(self, other: ClientApplication) -> ClientApplication {
+        let mut merged_strategies: Vec<String> = self
+            .strategies
+            .into_iter()
+            .chain(other.strategies.into_iter())
+            .collect::<HashSet<String>>()
+            .into_iter()
+            .collect();
+        merged_strategies.sort();
+
         ClientApplication {
             app_name: self.app_name,
             environment: self.environment.or(other.environment),
@@ -101,13 +110,7 @@ impl ClientApplication {
             interval: self.interval,
             sdk_version: self.sdk_version.or(other.sdk_version),
             started: self.started,
-            strategies: self
-                .strategies
-                .into_iter()
-                .chain(other.strategies.into_iter())
-                .collect::<HashSet<String>>()
-                .into_iter()
-                .collect(),
+            strategies: merged_strategies,
         }
     }
 }
@@ -198,5 +201,34 @@ mod tests {
         assert_eq!(merged.instance_id, Some("instance_id".into()));
         assert_eq!(merged.started, demo_data_orig.started);
         assert_eq!(merged.strategies.len(), 2);
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_prioritizes_left_hand_side() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: None,
+            instance_id: None,
+            sdk_version: Some("unleash-client-java:7.1.0".into()),
+            started: started.clone(),
+            strategies: vec!["default".into(), "gradualRollout".into()],
+        };
+
+        let demo_data_2 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            instance_id: None,
+            sdk_version: None,
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+        };
+
+        let left = demo_data_2.clone().merge(demo_data_1.clone());
+        let right = demo_data_1.clone().merge(demo_data_2.clone());
+
+        assert_eq!(left, right);
     }
 }
