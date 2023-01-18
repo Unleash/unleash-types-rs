@@ -11,13 +11,16 @@ pub struct ToggleStats {
 }
 
 impl ToggleStats {
-    pub fn yes(&mut self) {
+    /// Increments yes count
+    fn yes(&mut self) {
         self.yes += 1
     }
-    pub fn no(&mut self) {
+    /// Increments no count
+    fn no(&mut self) {
         self.no += 1
     }
 
+    /// Use after evaluating a toggle passing in whether or not the toggle was enabled
     pub fn count(&mut self, enabled: bool) {
         if enabled {
             self.yes()
@@ -26,12 +29,21 @@ impl ToggleStats {
         }
     }
 
-    pub fn count_variant(&mut self, name: &str, enabled: bool) {
+    /// Counts occurrence for variant with name.
+    /// This method will also count yes for the toggle itself
+    /// Use count_disabled()
+    pub fn count_variant(&mut self, name: &str) {
         self.increment_variant_count(name);
-        self.count(enabled);
+        self.count(true);
     }
 
-    pub fn increment_variant_count(&mut self, name: &str) {
+    pub fn variant_disabled(&mut self) {
+        self.increment_variant_count("disabled");
+        self.count(false);
+    }
+
+    /// Incrementing count for var
+    fn increment_variant_count(&mut self, name: &str) {
         self.variants
             .entry(name.into())
             .and_modify(|count| *count += 1)
@@ -156,11 +168,11 @@ mod tests {
     #[test]
     pub fn counting_variant_should_also_increment_yes_no_counters() {
         let mut stats = ToggleStats::default();
-        stats.count_variant("red", true);
-        stats.count_variant("green", true);
-        stats.count_variant("green", true);
-        stats.count_variant("green", true);
-        stats.count_variant("disabled", false);
+        stats.count_variant("red");
+        stats.count_variant("green");
+        stats.count_variant("green");
+        stats.count_variant("green");
+        stats.variant_disabled();
         assert_eq!(stats.yes, 4);
         assert_eq!(stats.no, 1);
         let red_count = stats.variants.get("red").unwrap();
