@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.4.0 (2023-01-18)
 
+<csr-id-6a91af13c2d1a107e9f7260e2af5ec9f26294a4d/>
+<csr-id-0a251eaa2bcfec307df4b6aef1dcda28ec8a9838/>
+<csr-id-48f001e044f058cdce0bfa07fe7c839c7f37748b/>
+<csr-id-2f4dde564fa4822bb86fd7c395de6da1b1babde3/>
+
 ### Chore
 
  - <csr-id-6a91af13c2d1a107e9f7260e2af5ec9f26294a4d/> Add workflow for clippy and testing
  - <csr-id-0a251eaa2bcfec307df4b6aef1dcda28ec8a9838/> add -rs suffix
  - <csr-id-48f001e044f058cdce0bfa07fe7c839c7f37748b/> Updated repo links after transferring ownership
+
+### Chore
+
+ - <csr-id-406c9fd5bbaa11f79d47e1cbe95f641a987922b2/> Add CHANGELOG
 
 ### New Features
 
@@ -30,9 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 6 commits contributed to the release over the course of 1 calendar day.
- - 27 days passed between releases.
- - 6 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 8 commits contributed to the release over the course of 2 calendar days.
+ - 28 days passed between releases.
+ - 7 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 3 unique issues were worked on: [#1](https://github.com/Unleash/unleash-types-rs/issues/1), [#2](https://github.com/Unleash/unleash-types-rs/issues/2), [#4](https://github.com/Unleash/unleash-types-rs/issues/4)
 
 ### Commit Details
@@ -48,12 +57,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#4](https://github.com/Unleash/unleash-types-rs/issues/4)**
     - add README ([`2f4dde5`](https://github.com/Unleash/unleash-types-rs/commit/2f4dde564fa4822bb86fd7c395de6da1b1babde3))
  * **Uncategorized**
+    - Add CHANGELOG ([`406c9fd`](https://github.com/Unleash/unleash-types-rs/commit/406c9fd5bbaa11f79d47e1cbe95f641a987922b2))
+    - Release unleash-types v0.4.0 ([`c5dbbdf`](https://github.com/Unleash/unleash-types-rs/commit/c5dbbdfcd2f518c45a9dda20c449bf38b5e2d692))
     - Add structs for ClientMetrics ([`47a1cfe`](https://github.com/Unleash/unleash-types-rs/commit/47a1cfec6023e4bb18a61142c69c771e5ca78bef))
     - add -rs suffix ([`0a251ea`](https://github.com/Unleash/unleash-types-rs/commit/0a251eaa2bcfec307df4b6aef1dcda28ec8a9838))
     - Updated repo links after transferring ownership ([`48f001e`](https://github.com/Unleash/unleash-types-rs/commit/48f001e044f058cdce0bfa07fe7c839c7f37748b))
 </details>
 
 ## v0.3.0 (2022-12-21)
+
+<csr-id-322465f4ebb3a94e3dd37306724f71c499d2d40e/>
 
 ### Chore
 
@@ -81,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.2.1 (2022-11-24)
 
+<csr-id-3338859afa3650bf35f63a5f5ec4a1b48908b1b3/>
+
 ### Chore
 
  - <csr-id-3338859afa3650bf35f63a5f5ec4a1b48908b1b3/> Release unleash-types version 0.2.1
@@ -106,6 +121,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.2.0 (2022-11-22)
+
+<csr-id-b17a4af499f1775185955eefe0d52eaff20fa860/>
+<csr-id-bdc0da41e2025894d76486130961747e0028fb87/>
 
 ### Chore
 
