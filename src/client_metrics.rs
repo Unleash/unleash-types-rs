@@ -68,6 +68,7 @@ pub struct ClientMetrics {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct ClientApplication {
     pub app_name: String,
     pub environment: Option<String>,
