@@ -1,5 +1,7 @@
 pub mod client_features;
+pub mod client_metrics;
 pub mod frontend;
+
 #[cfg(test)]
 mod tests {
     use super::client_features::*;
