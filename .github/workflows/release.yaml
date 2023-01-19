@@ -19,22 +19,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: ⚡ Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.rustup
-            target
-          key: release-${{ runner.os }}-stable
-          restore-keys: |
-            release-${{ runner.os }}-
       - name: Install rust
         run: |
-          rustup install stable
-          rustup default stable
+          rustup set auto-self-update disable
+          rustup toolchain install stable --profile minimal
           rustup show
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
       - name: Install required cargo packages for creating release
         run: |
           cargo install cargo-smart-release
