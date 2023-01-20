@@ -5,9 +5,17 @@ on:
   push:
     branches:
       - main
+    files:
+      - '**.rs'
+      - '**.toml'
+      - '.github/workflows/codequality.yaml'
   pull_request:
     branches:
       - main
+    files:
+      - '**.rs'
+      - '**.toml'
+      - '.github/workflows/codequality.yaml'
   schedule:
     # Runs on schedule at 1745 UTC every Tuesday
     - cron: '45 17 * * 2'

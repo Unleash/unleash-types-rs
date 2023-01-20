@@ -5,9 +5,18 @@ on:
   push:
     branches:
       - main
+    files:
+      - '**.rs'
+      - '**.toml'
+      - '.github/workflows/codequality.yaml'
+
   pull_request:
     branches:
       - main
+    files:
+      - '**.rs'
+      - '**.toml'
+      - '.github/workflows/codequality.yaml'
 
 jobs:
   tarpaulin:
