@@ -5,12 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.4.1 (2023-01-20)
+
+### Chore
+
+ - <csr-id-d8c299bef00283760126f1e37cea94242f369727/> use correct property for git fetch depth in build
+ - <csr-id-9a47f754ab0e6025b41abde61bd00b457505c9fa/> fetch the full repo and cache on failure
+ - <csr-id-34f471e18fa7f0ddd028b3a2ff56caf472061169/> only run codequality and test-coverage when rust,toml or the workflow has changed
+ - <csr-id-96554d828eb4c7aaec898da7ada887d6b26cce85/> fix typo in workflow
+ - <csr-id-66f019c249fdfec4d6867971e916eb31325c81e5/> Add workflows for testcoverage and release
+
+### Bug Fixes
+
+ - <csr-id-040cf879382a59989c27dca9c5c938418879a4c3/> Setup weight type to handle lowercased variants of the enum
+
+### Other
+
+ - <csr-id-11027d0d82e6c83c9598b3f3beb5e8a1ecb3c0ac/> updated parameters to cargo-smart-release
+ - <csr-id-21a93f0cd88076e0a94941f05587b5ad5e15cf37/> try to use rust-cache instead of github cache action
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 8 commits contributed to the release over the course of 1 calendar day.
+ - 1 day passed between releases.
+ - 8 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 5 unique issues were worked on: [#5](https://github.com/Unleash/unleash-types-rs/issues/5), [#6](https://github.com/Unleash/unleash-types-rs/issues/6), [#7](https://github.com/Unleash/unleash-types-rs/issues/7), [#8](https://github.com/Unleash/unleash-types-rs/issues/8), [#9](https://github.com/Unleash/unleash-types-rs/issues/9)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#5](https://github.com/Unleash/unleash-types-rs/issues/5)**
+    - Add workflows for testcoverage and release ([`66f019c`](https://github.com/Unleash/unleash-types-rs/commit/66f019c249fdfec4d6867971e916eb31325c81e5))
+ * **[#6](https://github.com/Unleash/unleash-types-rs/issues/6)**
+    - try to use rust-cache instead of github cache action ([`21a93f0`](https://github.com/Unleash/unleash-types-rs/commit/21a93f0cd88076e0a94941f05587b5ad5e15cf37))
+ * **[#7](https://github.com/Unleash/unleash-types-rs/issues/7)**
+    - Setup weight type to handle lowercased variants of the enum ([`040cf87`](https://github.com/Unleash/unleash-types-rs/commit/040cf879382a59989c27dca9c5c938418879a4c3))
+ * **[#8](https://github.com/Unleash/unleash-types-rs/issues/8)**
+    - updated parameters to cargo-smart-release ([`11027d0`](https://github.com/Unleash/unleash-types-rs/commit/11027d0d82e6c83c9598b3f3beb5e8a1ecb3c0ac))
+ * **[#9](https://github.com/Unleash/unleash-types-rs/issues/9)**
+    - use correct property for git fetch depth in build ([`d8c299b`](https://github.com/Unleash/unleash-types-rs/commit/d8c299bef00283760126f1e37cea94242f369727))
+ * **Uncategorized**
+    - fetch the full repo and cache on failure ([`9a47f75`](https://github.com/Unleash/unleash-types-rs/commit/9a47f754ab0e6025b41abde61bd00b457505c9fa))
+    - only run codequality and test-coverage when rust,toml or the workflow has changed ([`34f471e`](https://github.com/Unleash/unleash-types-rs/commit/34f471e18fa7f0ddd028b3a2ff56caf472061169))
+    - fix typo in workflow ([`96554d8`](https://github.com/Unleash/unleash-types-rs/commit/96554d828eb4c7aaec898da7ada887d6b26cce85))
+</details>
+
 ## v0.4.0 (2023-01-18)
 
 <csr-id-6a91af13c2d1a107e9f7260e2af5ec9f26294a4d/>
 <csr-id-0a251eaa2bcfec307df4b6aef1dcda28ec8a9838/>
 <csr-id-48f001e044f058cdce0bfa07fe7c839c7f37748b/>
 <csr-id-2f4dde564fa4822bb86fd7c395de6da1b1babde3/>
+<csr-id-406c9fd5bbaa11f79d47e1cbe95f641a987922b2/>
 
 ### Chore
 
@@ -39,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 8 commits contributed to the release over the course of 2 calendar days.
+ - 9 commits contributed to the release over the course of 2 calendar days.
  - 28 days passed between releases.
  - 7 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 3 unique issues were worked on: [#1](https://github.com/Unleash/unleash-types-rs/issues/1), [#2](https://github.com/Unleash/unleash-types-rs/issues/2), [#4](https://github.com/Unleash/unleash-types-rs/issues/4)
@@ -57,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#4](https://github.com/Unleash/unleash-types-rs/issues/4)**
     - add README ([`2f4dde5`](https://github.com/Unleash/unleash-types-rs/commit/2f4dde564fa4822bb86fd7c395de6da1b1babde3))
  * **Uncategorized**
+    - Release unleash-types v0.4.0 ([`cac15d9`](https://github.com/Unleash/unleash-types-rs/commit/cac15d93e19878884c0d83e8d7a54603bc50db0c))
     - Add CHANGELOG ([`406c9fd`](https://github.com/Unleash/unleash-types-rs/commit/406c9fd5bbaa11f79d47e1cbe95f641a987922b2))
     - Release unleash-types v0.4.0 ([`c5dbbdf`](https://github.com/Unleash/unleash-types-rs/commit/c5dbbdfcd2f518c45a9dda20c449bf38b5e2d692))
     - Add structs for ClientMetrics ([`47a1cfe`](https://github.com/Unleash/unleash-types-rs/commit/47a1cfec6023e4bb18a61142c69c771e5ca78bef))
