@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          depth: 0
       - name: Install rust
         run: |
           rustup set auto-self-update disable
@@ -28,6 +30,8 @@ jobs:
           rustup show
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - name: Install required cargo packages for creating release
         run: |
           cargo install cargo-smart-release
