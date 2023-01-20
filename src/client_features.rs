@@ -75,7 +75,7 @@ pub struct Constraint {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(rename_all = "lowercase")]
 pub enum WeightType {
     Fix,
     Variable,
