@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.4.1 (2023-01-20)
 
+<csr-id-d8c299bef00283760126f1e37cea94242f369727/>
+<csr-id-9a47f754ab0e6025b41abde61bd00b457505c9fa/>
+<csr-id-34f471e18fa7f0ddd028b3a2ff56caf472061169/>
+<csr-id-96554d828eb4c7aaec898da7ada887d6b26cce85/>
+<csr-id-66f019c249fdfec4d6867971e916eb31325c81e5/>
+<csr-id-11027d0d82e6c83c9598b3f3beb5e8a1ecb3c0ac/>
+<csr-id-21a93f0cd88076e0a94941f05587b5ad5e15cf37/>
+
 ### Chore
 
  - <csr-id-d8c299bef00283760126f1e37cea94242f369727/> use correct property for git fetch depth in build
@@ -28,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 8 commits contributed to the release over the course of 1 calendar day.
+ - 9 commits contributed to the release over the course of 1 calendar day.
  - 1 day passed between releases.
  - 8 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 5 unique issues were worked on: [#5](https://github.com/Unleash/unleash-types-rs/issues/5), [#6](https://github.com/Unleash/unleash-types-rs/issues/6), [#7](https://github.com/Unleash/unleash-types-rs/issues/7), [#8](https://github.com/Unleash/unleash-types-rs/issues/8), [#9](https://github.com/Unleash/unleash-types-rs/issues/9)
@@ -50,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#9](https://github.com/Unleash/unleash-types-rs/issues/9)**
     - use correct property for git fetch depth in build ([`d8c299b`](https://github.com/Unleash/unleash-types-rs/commit/d8c299bef00283760126f1e37cea94242f369727))
  * **Uncategorized**
+    - Release unleash-types v0.4.1 ([`f6d59de`](https://github.com/Unleash/unleash-types-rs/commit/f6d59dee03a61f838a438a1fa522c9f202908709))
     - fetch the full repo and cache on failure ([`9a47f75`](https://github.com/Unleash/unleash-types-rs/commit/9a47f754ab0e6025b41abde61bd00b457505c9fa))
     - only run codequality and test-coverage when rust,toml or the workflow has changed ([`34f471e`](https://github.com/Unleash/unleash-types-rs/commit/34f471e18fa7f0ddd028b3a2ff56caf472061169))
     - fix typo in workflow ([`96554d8`](https://github.com/Unleash/unleash-types-rs/commit/96554d828eb4c7aaec898da7ada887d6b26cce85))
