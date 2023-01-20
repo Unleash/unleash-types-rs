@@ -33,4 +33,4 @@ jobs:
           cargo install cargo-smart-release
       - name: Run cargo release process
         run: |
-          cargo smart-release --allow-fully-generated-changelog --no-changelog-preview -u -b ${{ github.event.inputs.bump }} --execute
+          cargo smart-release --allow-fully-generated-changelogs --no-changelog-preview -u -b ${{ github.event.inputs.bump }} --execute
