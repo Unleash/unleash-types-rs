@@ -34,7 +34,7 @@ pub enum Operator {
     Unknown(String),
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub user_id: Option<String>,
