@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.5.0 (2023-01-24)
+
+### New Features
+
+ - <csr-id-8ab0650d22051bba48d4b685e7d25d90722ec716/> Add Context struct
+   * feat: Add Context struct
+   
+   * chore: add test for context deserializing
+   
+   * feat: add serialize on context
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 4 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#10](https://github.com/Unleash/unleash-types-rs/issues/10)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#10](https://github.com/Unleash/unleash-types-rs/issues/10)**
+    - Add Context struct ([`8ab0650`](https://github.com/Unleash/unleash-types-rs/commit/8ab0650d22051bba48d4b685e7d25d90722ec716))
+</details>
+
 ## v0.4.1 (2023-01-20)
 
 <csr-id-d8c299bef00283760126f1e37cea94242f369727/>
@@ -36,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 9 commits contributed to the release over the course of 1 calendar day.
+ - 10 commits contributed to the release over the course of 1 calendar day.
  - 1 day passed between releases.
  - 8 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 5 unique issues were worked on: [#5](https://github.com/Unleash/unleash-types-rs/issues/5), [#6](https://github.com/Unleash/unleash-types-rs/issues/6), [#7](https://github.com/Unleash/unleash-types-rs/issues/7), [#8](https://github.com/Unleash/unleash-types-rs/issues/8), [#9](https://github.com/Unleash/unleash-types-rs/issues/9)
@@ -58,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#9](https://github.com/Unleash/unleash-types-rs/issues/9)**
     - use correct property for git fetch depth in build ([`d8c299b`](https://github.com/Unleash/unleash-types-rs/commit/d8c299bef00283760126f1e37cea94242f369727))
  * **Uncategorized**
+    - Release unleash-types v0.4.1 ([`8339c42`](https://github.com/Unleash/unleash-types-rs/commit/8339c42b99a3223a832586defd54347a59385d02))
     - Release unleash-types v0.4.1 ([`f6d59de`](https://github.com/Unleash/unleash-types-rs/commit/f6d59dee03a61f838a438a1fa522c9f202908709))
     - fetch the full repo and cache on failure ([`9a47f75`](https://github.com/Unleash/unleash-types-rs/commit/9a47f754ab0e6025b41abde61bd00b457505c9fa))
     - only run codequality and test-coverage when rust,toml or the workflow has changed ([`34f471e`](https://github.com/Unleash/unleash-types-rs/commit/34f471e18fa7f0ddd028b3a2ff56caf472061169))
