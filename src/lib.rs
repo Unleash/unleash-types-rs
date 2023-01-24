@@ -62,4 +62,18 @@ mod tests {
         let operator: Constraint = serde_json::from_value(string_constraint).unwrap();
         assert_eq!(operator.operator, expected)
     }
+
+    #[test]
+    fn deserializing_context_strips_null_properties_correctly() {
+        let json_blob = json!({
+            "userId": "some-user-id",
+            "properties": {
+                "lies": null,
+                "truths": "something is something"
+            }
+        });
+
+        let context: Context = serde_json::from_value(json_blob).unwrap();
+        assert_eq!(context.properties.unwrap().len(), 1);
+    }
 }
