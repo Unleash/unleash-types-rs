@@ -34,6 +34,48 @@ pub enum Operator {
     Unknown(String),
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Context {
+    pub user_id: Option<String>,
+    pub session_id: Option<String>,
+    pub environment: Option<String>,
+    pub app_name: Option<String>,
+    pub current_time: Option<String>,
+    pub remote_address: Option<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "remove_null_properties")]
+    pub properties: Option<HashMap<String, String>>,
+}
+
+// I know this looks silly but it's also important for two reasons:
+// The first is that the client spec tests have a test case that has a context defined like:
+// {
+//   "properties": {
+//      "someValue": null
+//    }
+// }
+// Passing around an Option<HashMap<String, Option<String>>> is awful and unnecessary, we should scrub ingested data
+// before trying to execute our logic, so we scrub out those empty values instead, they do nothing useful for us.
+// The second reason is that we can't shield the Rust code from consumers using the FFI layers and potentially doing
+// exactly the same thing in languages that allow it. They should not do that. But if they do we have enough information
+// to understand the intent of the executed code clearly and there's no reason to fail
+fn remove_null_properties<'de, D>(
+    deserializer: D,
+) -> Result<Option<HashMap<String, String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let props: Option<HashMap<String, Option<String>>> = Option::deserialize(deserializer)?;
+    Ok(props.map(|props| {
+        props
+            .into_iter()
+            .filter(|x| x.1.is_some())
+            .map(|x| (x.0, x.1.unwrap()))
+            .collect()
+    }))
+}
+
 impl<'de> Deserialize<'de> for Operator {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
