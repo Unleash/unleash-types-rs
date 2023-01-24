@@ -5,22 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v0.5.0 (2023-01-24)
+## v0.5.1 (2023-01-24)
 
 ### New Features
 
- - <csr-id-8ab0650d22051bba48d4b685e7d25d90722ec716/> Add Context struct
-   * feat: Add Context struct
-   
-   * chore: add test for context deserializing
-   
-   * feat: add serialize on context
+ - <csr-id-9e6aa99a49d694a9348121f83bf38961b5f5eaeb/> add a default implementation for Context struct
 
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#11](https://github.com/Unleash/unleash-types-rs/issues/11)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#11](https://github.com/Unleash/unleash-types-rs/issues/11)**
+    - add a default implementation for Context struct ([`9e6aa99`](https://github.com/Unleash/unleash-types-rs/commit/9e6aa99a49d694a9348121f83bf38961b5f5eaeb))
+</details>
+
+## v0.5.0 (2023-01-24)
+
+### New Features
+
+ - <csr-id-8ab0650d22051bba48d4b685e7d25d90722ec716/> Add Context struct
+   * feat: Add Context struct
+* chore: add test for context deserializing
+* feat: add serialize on context
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
  - 4 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#10](https://github.com/Unleash/unleash-types-rs/issues/10)
@@ -33,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#10](https://github.com/Unleash/unleash-types-rs/issues/10)**
     - Add Context struct ([`8ab0650`](https://github.com/Unleash/unleash-types-rs/commit/8ab0650d22051bba48d4b685e7d25d90722ec716))
+ * **Uncategorized**
+    - Release unleash-types v0.5.0 ([`f095fac`](https://github.com/Unleash/unleash-types-rs/commit/f095facd4199277d453206f79f5a26aa161f2324))
 </details>
 
 ## v0.4.1 (2023-01-20)
