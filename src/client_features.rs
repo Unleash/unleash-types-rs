@@ -76,6 +76,20 @@ where
     }))
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self {
+            user_id: None,
+            session_id: None,
+            environment: None,
+            current_time: None,
+            app_name: None,
+            remote_address: None,
+            properties: Some(HashMap::new()),
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for Operator {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
