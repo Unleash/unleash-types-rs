@@ -4,10 +4,17 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "openapi")]
+use utoipa::ToSchema;
+
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
+    #[builder(default = "0")]
     pub no: u64,
+    #[builder(default = "0")]
     pub yes: u64,
+    #[builder(default = "HashMap::new()")]
     pub variants: HashMap<String, u64>,
 }
 
@@ -53,6 +60,7 @@ impl ToggleStats {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
     pub start: DateTime<Utc>,
     pub stop: DateTime<Utc>,
@@ -60,6 +68,7 @@ pub struct MetricBucket {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientMetrics {
     pub app_name: String,
@@ -69,6 +78,7 @@ pub struct ClientMetrics {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientApplication {
     pub app_name: String,
