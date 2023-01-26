@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 #[cfg(feature = "openapi")]
@@ -6,7 +7,7 @@ use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
@@ -17,7 +18,7 @@ pub struct Query {
     pub inline_segment_constraints: Option<bool>,
 }
 
-#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
@@ -123,7 +124,7 @@ impl<'de> Deserialize<'de> for Operator {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Constraint {
@@ -207,12 +208,42 @@ pub struct Variant {
     pub overrides: Option<Vec<Override>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl PartialOrd for Variant {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self.weight.partial_cmp(&other.weight) {
+            Some(Ordering::Equal) => self.name.partial_cmp(&other.name),
+            Some(ord) => Some(ord),
+            None => None,
+        }
+    }
+}
+impl Ord for Variant {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.weight.cmp(&other.weight) {
+            Ordering::Equal => self.name.cmp(&other.name),
+            ord => return ord,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
     pub constraints: Vec<Constraint>,
+}
+
+impl PartialOrd for Segment {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Segment {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.id.cmp(&other.id)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
@@ -233,12 +264,91 @@ pub struct ClientFeature {
     pub variants: Option<Vec<Variant>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "openapi", derive(ToSchema))]
+impl PartialOrd for ClientFeature {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.name.partial_cmp(&other.name)
+    }
+}
 
+impl Ord for ClientFeature {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
     pub version: u32,
     pub features: Vec<ClientFeature>,
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::BufReader, path::PathBuf};
+
+    use super::{ClientFeatures, Constraint};
+    use test_case::test_case;
+
+    #[derive(Debug)]
+    pub enum EdgeError {
+        SomethingWentWrong(String),
+    }
+    #[test]
+    pub fn ordering_is_stable_for_constraints() {
+        let c1 = Constraint {
+            context_name: "acontext".into(),
+            operator: super::Operator::DateAfter,
+            case_insensitive: true,
+            inverted: false,
+            values: Some(vec![]),
+            value: None,
+        };
+        let c2 = Constraint {
+            context_name: "acontext".into(),
+            operator: super::Operator::DateBefore,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: Some("value".into()),
+        };
+        let c3 = Constraint {
+            context_name: "bcontext".into(),
+            operator: super::Operator::NotIn,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: None,
+        };
+        let mut v = vec![c3.clone(), c1.clone(), c2.clone()];
+        v.sort();
+        assert_eq!(v, vec![c1.clone(), c2.clone(), c3.clone()]);
+    }
+
+    fn read_file(path: PathBuf) -> Result<BufReader<File>, EdgeError> {
+        File::open(path)
+            .map_err(|e| EdgeError::SomethingWentWrong(e.to_string()))
+            .map(BufReader::new)
+    }
+
+    #[test_case("./examples/features_with_variantType.json".into() ; "features with variantType")]
+    #[test_case("./examples/15-global-constraints.json".into(); "global-constraints")]
+    pub fn client_features_parsing_is_stable(path: PathBuf) {
+        let client_features: ClientFeatures =
+            serde_json::from_reader(read_file(path).unwrap()).unwrap();
+
+        let to_string = serde_json::to_string(&client_features).unwrap();
+        let reparsed_to_string: ClientFeatures = serde_json::from_str(to_string.as_str()).unwrap();
+        assert_eq!(client_features, reparsed_to_string);
+        
+    }
+
+    #[test]
+    pub fn chris_is_stupid() {
+        let v1 = vec!["mylord", "this", "is", "embarrassing"];
+        let v2 = vec!["this", "is", "embarrassing", "mylord"];
+        assert_ne!(v1, v2);
+    }
 }
