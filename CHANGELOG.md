@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.6.0 (2023-01-26)
+
+### New Features
+
+ - <csr-id-387d1e27522b797e8d241d550cf2cef5ef5e1e83/> add openapi feature adding utoipa ToSchema
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 day passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#12](https://github.com/Unleash/unleash-types-rs/issues/12)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#12](https://github.com/Unleash/unleash-types-rs/issues/12)**
+    - add openapi feature adding utoipa ToSchema ([`387d1e2`](https://github.com/Unleash/unleash-types-rs/commit/387d1e27522b797e8d241d550cf2cef5ef5e1e83))
+</details>
+
 ## v0.5.1 (2023-01-24)
 
 ### New Features
@@ -15,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#11](https://github.com/Unleash/unleash-types-rs/issues/11)
 
@@ -27,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#11](https://github.com/Unleash/unleash-types-rs/issues/11)**
     - add a default implementation for Context struct ([`9e6aa99`](https://github.com/Unleash/unleash-types-rs/commit/9e6aa99a49d694a9348121f83bf38961b5f5eaeb))
+ * **Uncategorized**
+    - Release unleash-types v0.5.1 ([`c251815`](https://github.com/Unleash/unleash-types-rs/commit/c251815a5072cfe3a3b9ac5ea3ce159a8ce95736))
 </details>
 
 ## v0.5.0 (2023-01-24)
