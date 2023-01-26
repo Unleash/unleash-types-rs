@@ -9,12 +9,15 @@ repository = "https://github.com/Unleash/unleash-types-rs"
 homepage = "https://github.com/Unleash/unleash-types-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
+[features]
+default = []
+openapi = ["utoipa"]
 [dependencies]
 chrono = { version = "0.4.23", features = ["serde"] }
 derive_builder = "0.12.0"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
+utoipa = { version = "2.4.2", optional = true, features = ["chrono"] }
 
 [dev-dependencies]
 test-case = "2.2.2"

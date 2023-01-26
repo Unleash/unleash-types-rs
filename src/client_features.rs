@@ -1,9 +1,13 @@
 use std::collections::HashMap;
 
+#[cfg(feature = "openapi")]
+use utoipa::ToSchema;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
     pub tags: Option<Vec<Vec<String>>>,
@@ -14,6 +18,7 @@ pub struct Query {
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
     NotIn,
@@ -35,6 +40,7 @@ pub enum Operator {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub user_id: Option<String>,
@@ -118,6 +124,7 @@ impl<'de> Deserialize<'de> for Operator {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Constraint {
     pub context_name: String,
@@ -131,6 +138,7 @@ pub struct Constraint {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum WeightType {
     Fix,
@@ -138,6 +146,8 @@ pub enum WeightType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct Strategy {
     pub name: String,
     pub sort_order: Option<i32>,
@@ -171,6 +181,7 @@ impl Ord for Strategy {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Override {
     pub context_name: String,
@@ -178,12 +189,14 @@ pub struct Override {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct Payload {
     #[serde(rename = "type")]
     pub payload_type: String,
     pub value: String,
 }
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Variant {
     pub name: String,
@@ -195,6 +208,7 @@ pub struct Variant {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
@@ -202,6 +216,7 @@ pub struct Segment {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientFeature {
     pub name: String,
@@ -219,6 +234,8 @@ pub struct ClientFeature {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+
 pub struct ClientFeatures {
     pub version: u32,
     pub features: Vec<ClientFeature>,
