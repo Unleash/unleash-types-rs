@@ -91,7 +91,6 @@ where
 
 ///
 /// We need this to ensure that ClientFeatures gets a deterministic serialization.
-/// The two maps that are present somewhere in our ClientFeatures map *should* be tiny enough that this isn't too expensive to do
 fn optional_ordered_map<S>(
     value: &Option<HashMap<String, String>>,
     serializer: S,
