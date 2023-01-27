@@ -12,7 +12,7 @@ homepage = "https://github.com/Unleash/unleash-types-rs"
 [features]
 default = []
 openapi = ["utoipa"]
-hashes = ["xxhash-rust"]
+hashes = ["xxhash-rust", "base64"]
 [dependencies]
 base64 = { version = "0.21.0", optional = true }
 chrono = { version = "0.4.23", features = ["serde"] }
