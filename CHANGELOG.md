@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.7.0 (2023-01-27)
+
+### New Features
+
+ - <csr-id-ac9da78eb2a58b78580308268f5ee9e79c67e5c2/> deterministic serialization
+   * task: make sure ClientFeatures to_str is deterministic
+   
+   * fix: Serialize maps as BTreeMaps
+   
+   * fix: variants should be ordered by name
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 day passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#13](https://github.com/Unleash/unleash-types-rs/issues/13)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#13](https://github.com/Unleash/unleash-types-rs/issues/13)**
+    - deterministic serialization ([`ac9da78`](https://github.com/Unleash/unleash-types-rs/commit/ac9da78eb2a58b78580308268f5ee9e79c67e5c2))
+</details>
+
 ## v0.6.0 (2023-01-26)
 
 ### New Features
@@ -15,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 1 day passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#12](https://github.com/Unleash/unleash-types-rs/issues/12)
@@ -28,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#12](https://github.com/Unleash/unleash-types-rs/issues/12)**
     - add openapi feature adding utoipa ToSchema ([`387d1e2`](https://github.com/Unleash/unleash-types-rs/commit/387d1e27522b797e8d241d550cf2cef5ef5e1e83))
+ * **Uncategorized**
+    - Release unleash-types v0.6.0 ([`430059d`](https://github.com/Unleash/unleash-types-rs/commit/430059db169a18c70fe570fe5e11e165f398a713))
 </details>
 
 ## v0.5.1 (2023-01-24)
