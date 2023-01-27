@@ -90,7 +90,8 @@ where
 }
 
 ///
-/// We need this to ensure that
+/// We need this to ensure that ClientFeatures gets a deterministic serialization.
+/// The two maps that are present somewhere in our ClientFeatures map *should* be tiny enough that this isn't too expensive to do
 fn optional_ordered_map<S>(
     value: &Option<HashMap<String, String>>,
     serializer: S,
@@ -202,7 +203,10 @@ impl PartialOrd for Strategy {
 }
 impl Ord for Strategy {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.sort_order.cmp(&other.sort_order)
+        match self.sort_order.cmp(&other.sort_order) {
+            Ordering::Equal => self.name.cmp(&other.name),
+            ord => ord,
+        }
     }
 }
 
@@ -235,19 +239,12 @@ pub struct Variant {
 
 impl PartialOrd for Variant {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.weight.partial_cmp(&other.weight) {
-            Some(Ordering::Equal) => self.name.partial_cmp(&other.name),
-            Some(ord) => Some(ord),
-            None => None,
-        }
+        self.name.partial_cmp(&other.name)
     }
 }
 impl Ord for Variant {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.weight.cmp(&other.weight) {
-            Ordering::Equal => self.name.cmp(&other.name),
-            ord => return ord,
-        }
+        self.name.cmp(&other.name)
     }
 }
 
