@@ -18,6 +18,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "base64"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
+
+[[package]]
 name = "bumpalo"
 version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -454,19 +460,21 @@ checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
 name = "unleash-types"
 version = "0.6.0"
 dependencies = [
+ "base64",
  "chrono",
  "derive_builder",
  "serde",
  "serde_json",
  "test-case",
  "utoipa",
+ "xxhash-rust",
 ]
 
 [[package]]
 name = "utoipa"
-version = "2.4.2"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b626abb3bbbe41ce00df6dea3d109a83a034930245c3307026d82d71e7a06e43"
+checksum = "3aa64500a27ca10b80b00a6b96613734f0ff59aea87ccd4e10153da8ad11ddee"
 dependencies = [
  "indexmap",
  "serde",
@@ -476,9 +484,9 @@ dependencies = [
 
 [[package]]
 name = "utoipa-gen"
-version = "2.4.2"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "250e8cdb0461b6fbaa1c1acb7f08300d773713fab721776becf5f7386b41a791"
+checksum = "f02ddae6d8c5e5cf920f8010dfd5bed9183f856899b0cf2d87b1bfbb012d32ad"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -582,3 +590,9 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "xxhash-rust"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "735a71d46c4d68d71d4b24d03fdc2b98e38cea81730595801db779c04fe80d70"

@@ -1,12 +1,16 @@
+#[cfg(feature = "hashes")]
+use base64::Engine;
 use std::collections::HashMap;
-
+use std::{cmp::Ordering, collections::BTreeMap};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+#[cfg(feature = "hashes")]
+use xxhash_rust::xxh3::xxh3_128;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
@@ -17,7 +21,7 @@ pub struct Query {
     pub inline_segment_constraints: Option<bool>,
 }
 
-#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
@@ -50,7 +54,10 @@ pub struct Context {
     pub current_time: Option<String>,
     pub remote_address: Option<String>,
     #[serde(default)]
-    #[serde(deserialize_with = "remove_null_properties")]
+    #[serde(
+        deserialize_with = "remove_null_properties",
+        serialize_with = "optional_ordered_map"
+    )]
     pub properties: Option<HashMap<String, String>>,
 }
 
@@ -80,6 +87,24 @@ where
             .map(|x| (x.0, x.1.unwrap()))
             .collect()
     }))
+}
+
+///
+/// We need this to ensure that ClientFeatures gets a deterministic serialization.
+fn optional_ordered_map<S>(
+    value: &Option<HashMap<String, String>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(m) => {
+            let ordered: BTreeMap<_, _> = m.iter().collect();
+            ordered.serialize(serializer)
+        }
+        None => serializer.serialize_none(),
+    }
 }
 
 impl Default for Context {
@@ -123,7 +148,7 @@ impl<'de> Deserialize<'de> for Operator {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Constraint {
@@ -153,6 +178,7 @@ pub struct Strategy {
     pub sort_order: Option<i32>,
     pub segments: Option<Vec<i32>>,
     pub constraints: Option<Vec<Constraint>>,
+    #[serde(serialize_with = "optional_ordered_map")]
     pub parameters: Option<HashMap<String, String>>,
 }
 
@@ -176,7 +202,10 @@ impl PartialOrd for Strategy {
 }
 impl Ord for Strategy {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.sort_order.cmp(&other.sort_order)
+        match self.sort_order.cmp(&other.sort_order) {
+            Ordering::Equal => self.name.cmp(&other.name),
+            ord => ord,
+        }
     }
 }
 
@@ -207,12 +236,35 @@ pub struct Variant {
     pub overrides: Option<Vec<Override>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl PartialOrd for Variant {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.name.partial_cmp(&other.name)
+    }
+}
+impl Ord for Variant {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
     pub constraints: Vec<Constraint>,
+}
+
+impl PartialOrd for Segment {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Segment {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.id.cmp(&other.id)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
@@ -233,12 +285,114 @@ pub struct ClientFeature {
     pub variants: Option<Vec<Variant>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "openapi", derive(ToSchema))]
+impl PartialOrd for ClientFeature {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.name.partial_cmp(&other.name)
+    }
+}
 
+impl Ord for ClientFeature {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
     pub version: u32,
     pub features: Vec<ClientFeature>,
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
+}
+
+#[cfg(feature = "hashes")]
+impl ClientFeatures {
+    ///
+    /// Returns a base64 encoded xx3_128 hash for the json representation of ClientFeatures
+    ///
+    pub fn xx3_hash(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
+            .map(|s| xxh3_128(s.as_bytes()))
+            .map(|xxh_hash| base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(xxh_hash.to_le_bytes()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::BufReader, path::PathBuf};
+
+    use super::{ClientFeatures, Constraint};
+    use test_case::test_case;
+
+    #[derive(Debug)]
+    pub enum EdgeError {
+        SomethingWentWrong(String),
+    }
+    #[test]
+    pub fn ordering_is_stable_for_constraints() {
+        let c1 = Constraint {
+            context_name: "acontext".into(),
+            operator: super::Operator::DateAfter,
+            case_insensitive: true,
+            inverted: false,
+            values: Some(vec![]),
+            value: None,
+        };
+        let c2 = Constraint {
+            context_name: "acontext".into(),
+            operator: super::Operator::DateBefore,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: Some("value".into()),
+        };
+        let c3 = Constraint {
+            context_name: "bcontext".into(),
+            operator: super::Operator::NotIn,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: None,
+        };
+        let mut v = vec![c3.clone(), c1.clone(), c2.clone()];
+        v.sort();
+        assert_eq!(v, vec![c1.clone(), c2.clone(), c3.clone()]);
+    }
+
+    fn read_file(path: PathBuf) -> Result<BufReader<File>, EdgeError> {
+        File::open(path)
+            .map_err(|e| EdgeError::SomethingWentWrong(e.to_string()))
+            .map(BufReader::new)
+    }
+
+    #[test_case("./examples/features_with_variantType.json".into() ; "features with variantType")]
+    #[test_case("./examples/15-global-constraints.json".into(); "global-constraints")]
+    pub fn client_features_parsing_is_stable(path: PathBuf) {
+        let client_features: ClientFeatures =
+            serde_json::from_reader(read_file(path).unwrap()).unwrap();
+
+        let to_string = serde_json::to_string(&client_features).unwrap();
+        let reparsed_to_string: ClientFeatures = serde_json::from_str(to_string.as_str()).unwrap();
+        assert_eq!(client_features, reparsed_to_string);
+    }
+
+    #[cfg(feature = "hashes")]
+    #[test_case("./examples/features_with_variantType.json".into() ; "features with variantType")]
+    #[cfg(feature = "hashes")]
+    #[test_case("./examples/15-global-constraints.json".into(); "global-constraints")]
+    pub fn client_features_hashing_is_stable(path: PathBuf) {
+        let client_features: ClientFeatures =
+            serde_json::from_reader(read_file(path.clone()).unwrap()).unwrap();
+
+        let second_read: ClientFeatures =
+            serde_json::from_reader(read_file(path).unwrap()).unwrap();
+
+        let first_hash = client_features.xx3_hash().unwrap();
+        let second_hash = client_features.xx3_hash().unwrap();
+        assert_eq!(first_hash, second_hash);
+
+        let first_hash_from_second_read = second_read.xx3_hash().unwrap();
+        assert_eq!(first_hash, first_hash_from_second_read);
+    }
 }
