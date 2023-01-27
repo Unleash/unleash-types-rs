@@ -1,11 +1,14 @@
-use std::cmp::Ordering;
+#[cfg(feature = "hashes")]
+use base64::Engine;
 use std::collections::HashMap;
-
+use std::{cmp::Ordering, collections::BTreeMap};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+#[cfg(feature = "hashes")]
+use xxhash_rust::xxh3::xxh3_128;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
@@ -51,7 +54,10 @@ pub struct Context {
     pub current_time: Option<String>,
     pub remote_address: Option<String>,
     #[serde(default)]
-    #[serde(deserialize_with = "remove_null_properties")]
+    #[serde(
+        deserialize_with = "remove_null_properties",
+        serialize_with = "optional_ordered_map"
+    )]
     pub properties: Option<HashMap<String, String>>,
 }
 
@@ -81,6 +87,24 @@ where
             .map(|x| (x.0, x.1.unwrap()))
             .collect()
     }))
+}
+
+///
+/// We need this to ensure that
+fn optional_ordered_map<S>(
+    value: &Option<HashMap<String, String>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(m) => {
+            let ordered: BTreeMap<_, _> = m.iter().collect();
+            ordered.serialize(serializer)
+        }
+        None => serializer.serialize_none(),
+    }
 }
 
 impl Default for Context {
@@ -154,6 +178,7 @@ pub struct Strategy {
     pub sort_order: Option<i32>,
     pub segments: Option<Vec<i32>>,
     pub constraints: Option<Vec<Constraint>>,
+    #[serde(serialize_with = "optional_ordered_map")]
     pub parameters: Option<HashMap<String, String>>,
 }
 
@@ -285,6 +310,18 @@ pub struct ClientFeatures {
     pub query: Option<Query>,
 }
 
+#[cfg(feature = "hashes")]
+impl ClientFeatures {
+    ///
+    /// Returns a base64 encoded xx3_128 hash for the json representation of ClientFeatures
+    ///
+    pub fn xx3_hash(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
+            .map(|s| xxh3_128(s.as_bytes()))
+            .map(|xxh_hash| base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(xxh_hash.to_le_bytes()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{fs::File, io::BufReader, path::PathBuf};
@@ -342,13 +379,24 @@ mod tests {
         let to_string = serde_json::to_string(&client_features).unwrap();
         let reparsed_to_string: ClientFeatures = serde_json::from_str(to_string.as_str()).unwrap();
         assert_eq!(client_features, reparsed_to_string);
-        
     }
 
-    #[test]
-    pub fn chris_is_stupid() {
-        let v1 = vec!["mylord", "this", "is", "embarrassing"];
-        let v2 = vec!["this", "is", "embarrassing", "mylord"];
-        assert_ne!(v1, v2);
+    #[cfg(feature = "hashes")]
+    #[test_case("./examples/features_with_variantType.json".into() ; "features with variantType")]
+    #[cfg(feature = "hashes")]
+    #[test_case("./examples/15-global-constraints.json".into(); "global-constraints")]
+    pub fn client_features_hashing_is_stable(path: PathBuf) {
+        let client_features: ClientFeatures =
+            serde_json::from_reader(read_file(path.clone()).unwrap()).unwrap();
+
+        let second_read: ClientFeatures =
+            serde_json::from_reader(read_file(path).unwrap()).unwrap();
+
+        let first_hash = client_features.xx3_hash().unwrap();
+        let second_hash = client_features.xx3_hash().unwrap();
+        assert_eq!(first_hash, second_hash);
+
+        let first_hash_from_second_read = second_read.xx3_hash().unwrap();
+        assert_eq!(first_hash, first_hash_from_second_read);
     }
 }
