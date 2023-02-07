@@ -314,7 +314,7 @@ impl ClientFeatures {
     pub fn xx3_hash(&self) -> Result<String, serde_json::Error> {
         serde_json::to_string(self)
             .map(|s| xxh3_128(s.as_bytes()))
-            .map(|xxh_hash| base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(xxh_hash.to_le_bytes()))
+            .map(|xxh_hash| base64::prelude::BASE64_URL_SAFE.encode(xxh_hash.to_le_bytes()))
     }
 }
 
