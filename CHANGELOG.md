@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.8.0 (2023-02-07)
+
+### New Features
+
+ - <csr-id-323b65caa87788b200325f67ba63c7c7ef966fd6/> add logic for batching metrics
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 6 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#14](https://github.com/Unleash/unleash-types-rs/issues/14)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#14](https://github.com/Unleash/unleash-types-rs/issues/14)**
+    - add logic for batching metrics ([`323b65c`](https://github.com/Unleash/unleash-types-rs/commit/323b65caa87788b200325f67ba63c7c7ef966fd6))
+ * **Uncategorized**
+    - Release unleash-types v0.8.0 ([`f45d3e8`](https://github.com/Unleash/unleash-types-rs/commit/f45d3e8209a000895a6b6ba78a5d5d086be54d81))
+</details>
+
 ## v0.7.1 (2023-02-01)
 
 ### Bug Fixes
@@ -15,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 5 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release unleash-types v0.7.1 ([`239488a`](https://github.com/Unleash/unleash-types-rs/commit/239488a030e9dd450464dbe377975085ad2cf5b9))
     - Use BASE64_URL_SAFE to hash client_features ([`12d3de2`](https://github.com/Unleash/unleash-types-rs/commit/12d3de2edaf3c182f747b60408441dc80a7a65df))
 </details>
 
