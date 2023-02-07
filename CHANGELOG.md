@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 6 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#14](https://github.com/Unleash/unleash-types-rs/issues/14)
@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#14](https://github.com/Unleash/unleash-types-rs/issues/14)**
     - add logic for batching metrics ([`323b65c`](https://github.com/Unleash/unleash-types-rs/commit/323b65caa87788b200325f67ba63c7c7ef966fd6))
+ * **Uncategorized**
+    - Release unleash-types v0.8.0 ([`f45d3e8`](https://github.com/Unleash/unleash-types-rs/commit/f45d3e8209a000895a6b6ba78a5d5d086be54d81))
 </details>
 
 ## v0.7.1 (2023-02-01)
