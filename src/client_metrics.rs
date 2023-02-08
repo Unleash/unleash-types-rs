@@ -209,7 +209,6 @@ impl ClientApplication {
 #[cfg(test)]
 mod tests {
     use chrono::{Duration, Utc};
-    use serde_json::json;
 
     use super::*;
 
