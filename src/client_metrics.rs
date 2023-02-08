@@ -67,9 +67,10 @@ pub struct MetricBucket {
     pub toggles: HashMap<String, ToggleStats>,
 }
 
-pub fn from_bucket_app_name_and_env(
+pub fn from_bucket_app_name_instance_id_and_env(
     bucket: MetricBucket,
     app_name: String,
+    instance_id: String,
     environment: String,
 ) -> Vec<ClientMetricsEnv> {
     let timestamp = bucket.start;
@@ -79,6 +80,7 @@ pub fn from_bucket_app_name_and_env(
         .map(|(name, stats)| ClientMetricsEnv {
             feature_name: name,
             app_name: app_name.clone(),
+            instance_id: instance_id.clone(),
             environment: environment.clone(),
             timestamp,
             yes: stats.yes,
@@ -104,6 +106,7 @@ pub struct ClientMetrics {
 pub struct ClientMetricsEnv {
     pub feature_name: String,
     pub app_name: String,
+    pub instance_id: String,
     pub environment: String,
     pub timestamp: DateTime<Utc>,
     pub yes: u64,
@@ -455,9 +458,10 @@ mod tests {
             stop: start + Duration::minutes(50),
             toggles: map,
         };
-        let client_metrics_env = from_bucket_app_name_and_env(
+        let client_metrics_env = from_bucket_app_name_instance_id_and_env(
             bucket,
             "unleash_edge_metrics".into(),
+            "1337-3063".into(),
             "development".into(),
         );
         assert_eq!(client_metrics_env.len(), 2);
