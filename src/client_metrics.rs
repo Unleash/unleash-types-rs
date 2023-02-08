@@ -15,6 +15,7 @@ pub struct ToggleStats {
     #[builder(default = "0")]
     pub yes: u64,
     #[builder(default = "HashMap::new()")]
+    #[serde(default)]
     pub variants: HashMap<String, u64>,
 }
 
@@ -208,6 +209,7 @@ impl ClientApplication {
 #[cfg(test)]
 mod tests {
     use chrono::{Duration, Utc};
+    use serde_json::json;
 
     use super::*;
 
@@ -477,5 +479,28 @@ mod tests {
 
         assert_eq!(feature_two_metrics.yes, 7);
         assert_eq!(feature_two_metrics.no, 1);
+    }
+
+    #[test]
+    fn toggle_states_can_be_deserialized_without_variants() {
+        let serialized_metrics = r#"
+        {
+            "appName": "some-app",
+            "instanceId": "some-instance",
+            "bucket": {
+              "start": "1867-11-07T12:00:00Z",
+              "stop": "1934-11-07T12:00:00Z",
+              "toggles": {
+                "some-feature": {
+                  "yes": 1,
+                  "no": 0
+                }
+              }
+            }
+          }
+        "#;
+        let metrics: ClientMetrics = serde_json::from_str(serialized_metrics).unwrap();
+        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().yes, 1);
+        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().no, 0);
     }
 }
