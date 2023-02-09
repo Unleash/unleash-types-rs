@@ -5,7 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.8.1 (2023-02-08)
+
+### Chore
+
+ - <csr-id-8f07c238092ffe729ecc110abc12d389f70f26f7/> bump version to 0.8.1
+
+### Bug Fixes
+
+ - <csr-id-e4793a9f653c78bca55e63736cb94d210f72fa41/> handle legacy metrics format
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 1 day passed between releases.
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 2 unique issues were worked on: [#17](https://github.com/Unleash/unleash-types-rs/issues/17), [#18](https://github.com/Unleash/unleash-types-rs/issues/18)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#17](https://github.com/Unleash/unleash-types-rs/issues/17)**
+    - handle legacy metrics format ([`e4793a9`](https://github.com/Unleash/unleash-types-rs/commit/e4793a9f653c78bca55e63736cb94d210f72fa41))
+ * **[#18](https://github.com/Unleash/unleash-types-rs/issues/18)**
+    - bump version to 0.8.1 ([`8f07c23`](https://github.com/Unleash/unleash-types-rs/commit/8f07c238092ffe729ecc110abc12d389f70f26f7))
+</details>
+
 ## v0.8.0 (2023-02-07)
+
+### Chore
+
+ - <csr-id-ff2837e50d7812b821949565cc4c00f44f37a8be/> bump version to v0.8.0
 
 ### New Features
 
@@ -17,8 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  - 2 commits contributed to the release.
  - 6 days passed between releases.
- - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
- - 1 unique issue was worked on: [#14](https://github.com/Unleash/unleash-types-rs/issues/14)
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 2 unique issues were worked on: [#14](https://github.com/Unleash/unleash-types-rs/issues/14), [#15](https://github.com/Unleash/unleash-types-rs/issues/15)
 
 ### Commit Details
 
@@ -28,8 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#14](https://github.com/Unleash/unleash-types-rs/issues/14)**
     - add logic for batching metrics ([`323b65c`](https://github.com/Unleash/unleash-types-rs/commit/323b65caa87788b200325f67ba63c7c7ef966fd6))
- * **Uncategorized**
-    - Release unleash-types v0.8.0 ([`f45d3e8`](https://github.com/Unleash/unleash-types-rs/commit/f45d3e8209a000895a6b6ba78a5d5d086be54d81))
+ * **[#15](https://github.com/Unleash/unleash-types-rs/issues/15)**
+    - bump version to v0.8.0 ([`ff2837e`](https://github.com/Unleash/unleash-types-rs/commit/ff2837e50d7812b821949565cc4c00f44f37a8be))
 </details>
 
 ## v0.7.1 (2023-02-01)
