@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v0.8.1 (2023-02-08)
+## v0.8.2 (2023-02-09)
 
 ### Chore
 
  - <csr-id-8f07c238092ffe729ecc110abc12d389f70f26f7/> bump version to 0.8.1
+
+### New Features
+
+ - <csr-id-1752d1881d41e346e7847b749f70b93767600923/> implements a few sugar traits for working with the underlying domain specific vecs types - deduplicate and merge
 
 ### Bug Fixes
 
@@ -19,10 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release.
+ - 4 commits contributed to the release.
  - 1 day passed between releases.
- - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
- - 2 unique issues were worked on: [#17](https://github.com/Unleash/unleash-types-rs/issues/17), [#18](https://github.com/Unleash/unleash-types-rs/issues/18)
+ - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 4 unique issues were worked on: [#17](https://github.com/Unleash/unleash-types-rs/issues/17), [#18](https://github.com/Unleash/unleash-types-rs/issues/18), [#19](https://github.com/Unleash/unleash-types-rs/issues/19), [#20](https://github.com/Unleash/unleash-types-rs/issues/20)
 
 ### Commit Details
 
@@ -34,9 +38,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - handle legacy metrics format ([`e4793a9`](https://github.com/Unleash/unleash-types-rs/commit/e4793a9f653c78bca55e63736cb94d210f72fa41))
  * **[#18](https://github.com/Unleash/unleash-types-rs/issues/18)**
     - bump version to 0.8.1 ([`8f07c23`](https://github.com/Unleash/unleash-types-rs/commit/8f07c238092ffe729ecc110abc12d389f70f26f7))
+ * **[#19](https://github.com/Unleash/unleash-types-rs/issues/19)**
+    - Release unleash-types v0.8.1 ([`fe8cfa8`](https://github.com/Unleash/unleash-types-rs/commit/fe8cfa86cf5123f8401f8ae4dd2ce379b6cfe584))
+ * **[#20](https://github.com/Unleash/unleash-types-rs/issues/20)**
+    - implements a few sugar traits for working with the underlying domain specific vecs types - deduplicate and merge ([`1752d18`](https://github.com/Unleash/unleash-types-rs/commit/1752d1881d41e346e7847b749f70b93767600923))
 </details>
 
+## v0.8.1 (2023-02-08)
+
+<csr-id-8f07c238092ffe729ecc110abc12d389f70f26f7/>
+
+### Chore
+
+ - <csr-id-8f07c238092ffe729ecc110abc12d389f70f26f7/> bump version to 0.8.1
+
+### Bug Fixes
+
+ - <csr-id-e4793a9f653c78bca55e63736cb94d210f72fa41/> handle legacy metrics format
+
 ## v0.8.0 (2023-02-07)
+
+<csr-id-ff2837e50d7812b821949565cc4c00f44f37a8be/>
 
 ### Chore
 
