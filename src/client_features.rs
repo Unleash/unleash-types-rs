@@ -1,6 +1,7 @@
 #[cfg(feature = "hashes")]
 use base64::Engine;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::{cmp::Ordering, collections::BTreeMap};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
@@ -9,6 +10,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
+
+use crate::{Deduplicate, Merge};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
@@ -247,12 +250,18 @@ impl Ord for Variant {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
     pub constraints: Vec<Constraint>,
+}
+
+impl PartialEq for Segment {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }
 
 impl PartialOrd for Segment {
@@ -267,7 +276,13 @@ impl Ord for Segment {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+impl Hash for Segment {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, Default)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientFeature {
@@ -285,6 +300,31 @@ pub struct ClientFeature {
     pub variants: Option<Vec<Variant>>,
 }
 
+impl Merge for ClientFeatures {
+    fn merge(self, other: Self) -> Self {
+        let features = self.features.merge(other.features);
+
+        let segments = match (self.segments, other.segments) {
+            (Some(mut s), Some(o)) => {
+                s.extend(o);
+                Some(s.deduplicate())
+            }
+            (Some(s), None) => Some(s),
+            (None, Some(o)) => Some(o),
+            (None, None) => None,
+        };
+        ClientFeatures {
+            version: self.version.max(other.version),
+            features: features
+                .into_iter()
+                .collect::<Vec<ClientFeature>>()
+                .deduplicate(),
+            segments,
+            query: self.query.or(other.query),
+        }
+    }
+}
+
 impl PartialOrd for ClientFeature {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.name.partial_cmp(&other.name)
@@ -294,6 +334,18 @@ impl PartialOrd for ClientFeature {
 impl Ord for ClientFeature {
     fn cmp(&self, other: &Self) -> Ordering {
         self.name.cmp(&other.name)
+    }
+}
+
+impl PartialEq for ClientFeature {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Hash for ClientFeature {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }
 
@@ -321,6 +373,8 @@ impl ClientFeatures {
 #[cfg(test)]
 mod tests {
     use std::{fs::File, io::BufReader, path::PathBuf};
+
+    use crate::{client_features::ClientFeature, Merge};
 
     use super::{ClientFeatures, Constraint};
     use test_case::test_case;
@@ -357,7 +411,7 @@ mod tests {
         };
         let mut v = vec![c3.clone(), c1.clone(), c2.clone()];
         v.sort();
-        assert_eq!(v, vec![c1.clone(), c2.clone(), c3.clone()]);
+        assert_eq!(v, vec![c1, c2, c3]);
     }
 
     fn read_file(path: PathBuf) -> Result<BufReader<File>, EdgeError> {
@@ -394,5 +448,37 @@ mod tests {
 
         let first_hash_from_second_read = second_read.xx3_hash().unwrap();
         assert_eq!(first_hash, first_hash_from_second_read);
+    }
+
+    #[test]
+    fn merging_two_client_features_takes_both_feature_sets() {
+        let client_features_one = ClientFeatures {
+            version: 2,
+            features: vec![
+                ClientFeature {
+                    name: "feature1".into(),
+                    ..ClientFeature::default()
+                },
+                ClientFeature {
+                    name: "feature2".into(),
+                    ..ClientFeature::default()
+                },
+            ],
+            segments: None,
+            query: None,
+        };
+
+        let client_features_two = ClientFeatures {
+            version: 2,
+            features: vec![ClientFeature {
+                name: "feature1".into(),
+                ..ClientFeature::default()
+            }],
+            segments: None,
+            query: None,
+        };
+
+        let merged = client_features_one.merge(client_features_two);
+        assert_eq!(merged.features.len(), 2);
     }
 }

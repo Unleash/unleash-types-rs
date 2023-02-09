@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
+use crate::Merge;
+
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
@@ -160,9 +162,23 @@ impl ClientApplication {
         self.strategies = unique_strats;
     }
 
+    pub fn connect_via(&self, app_name: &str, instance_id: &str) -> ClientApplication {
+        let mut connect_via = self.connect_via.clone().unwrap_or(vec![]);
+        connect_via.push(ConnectVia {
+            app_name: app_name.into(),
+            instance_id: instance_id.into(),
+        });
+        Self {
+            connect_via: Some(connect_via),
+            ..self.clone()
+        }
+    }
+}
+
+impl Merge for ClientApplication {
     /// Will keep all set fields from self, overwriting None with Somes from other
     /// Will merge strategies from self and other, deduplicating
-    pub fn merge(self, other: ClientApplication) -> ClientApplication {
+    fn merge(self, other: ClientApplication) -> ClientApplication {
         let mut merged_strategies: Vec<String> = self
             .strategies
             .into_iter()
@@ -190,18 +206,6 @@ impl ClientApplication {
             started: self.started,
             strategies: merged_strategies,
             connect_via: merged_connected_via,
-        }
-    }
-
-    pub fn connect_via(&self, app_name: &str, instance_id: &str) -> ClientApplication {
-        let mut connect_via = self.connect_via.clone().unwrap_or(vec![]);
-        connect_via.push(ConnectVia {
-            app_name: app_name.into(),
-            instance_id: instance_id.into(),
-        });
-        Self {
-            connect_via: Some(connect_via),
-            ..self.clone()
         }
     }
 }
@@ -305,7 +309,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started.clone(),
+            started: started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
@@ -321,7 +325,7 @@ mod tests {
         };
 
         let left = demo_data_2.clone().merge(demo_data_1.clone());
-        let right = demo_data_1.clone().merge(demo_data_2.clone());
+        let right = demo_data_1.merge(demo_data_2);
 
         assert_eq!(left, right);
     }
@@ -361,7 +365,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started.clone(),
+            started: started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
@@ -407,7 +411,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started.clone(),
+            started: started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
@@ -426,7 +430,7 @@ mod tests {
         };
         let merged = demo_data_1.clone().merge(demo_data_2.clone());
         assert_eq!(demo_data_2.connect_via, merged.connect_via);
-        let reverse_merge = demo_data_2.clone().merge(demo_data_1.clone());
+        let reverse_merge = demo_data_2.clone().merge(demo_data_1);
         assert_eq!(demo_data_2.connect_via, reverse_merge.connect_via);
     }
 
