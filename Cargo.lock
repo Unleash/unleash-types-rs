@@ -445,6 +445,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "typeshare"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7f096d7253207ace684191e2c22d6480345975c15bbccd7c14d5de713f08bd6"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "typeshare-annotation",
+]
+
+[[package]]
+name = "typeshare-annotation"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "389b0235d70d7c762268e3b693e5efbe0879b036de868a39188309e2ced169ec"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -466,6 +488,7 @@ dependencies = [
  "serde",
  "serde_json",
  "test-case",
+ "typeshare",
  "utoipa",
  "xxhash-rust",
 ]

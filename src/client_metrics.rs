@@ -4,11 +4,13 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use typeshare::typeshare;
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
 use crate::Merge;
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
@@ -62,6 +64,7 @@ impl ToggleStats {
     }
 }
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
@@ -91,6 +94,7 @@ pub fn from_bucket_app_name_and_env(
         .collect()
 }
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -101,6 +105,7 @@ pub struct ClientMetrics {
     pub instance_id: Option<String>,
 }
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -114,6 +119,7 @@ pub struct ClientMetricsEnv {
     pub variants: HashMap<String, u64>,
 }
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -122,6 +128,7 @@ pub struct ConnectVia {
     pub instance_id: String,
 }
 
+#[typeshare]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -130,14 +137,14 @@ pub struct ClientApplication {
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
-    pub interval: u64,
+    pub interval: u32,
     pub sdk_version: Option<String>,
     pub started: DateTime<Utc>,
     pub strategies: Vec<String>,
 }
 
 impl ClientApplication {
-    pub fn new(app_name: &str, interval: u64) -> Self {
+    pub fn new(app_name: &str, interval: u32) -> Self {
         Self {
             app_name: app_name.into(),
             connect_via: Some(vec![]),
