@@ -15,12 +15,12 @@ use crate::Merge;
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
     #[builder(default = "0")]
-    pub no: u64,
+    pub no: u32,
     #[builder(default = "0")]
-    pub yes: u64,
+    pub yes: u32,
     #[builder(default = "HashMap::new()")]
     #[serde(default)]
-    pub variants: HashMap<String, u64>,
+    pub variants: HashMap<String, u32>,
 }
 
 impl ToggleStats {
@@ -114,9 +114,9 @@ pub struct ClientMetricsEnv {
     pub app_name: String,
     pub environment: String,
     pub timestamp: DateTime<Utc>,
-    pub yes: u64,
-    pub no: u64,
-    pub variants: HashMap<String, u64>,
+    pub yes: u32,
+    pub no: u32,
+    pub variants: HashMap<String, u32>,
 }
 
 #[typeshare]

@@ -29,7 +29,7 @@ pub struct Query {
 #[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE", tag = "type", content = "content")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
     NotIn,
     In,
@@ -46,6 +46,7 @@ pub enum Operator {
     SemverEq,
     SemverLt,
     SemverGt,
+    #[serde(skip)]
     Unknown(String),
 }
 
@@ -128,6 +129,7 @@ impl Default for Context {
     }
 }
 
+#[typeshare]
 impl<'de> Deserialize<'de> for Operator {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
