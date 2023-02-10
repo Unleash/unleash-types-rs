@@ -14,7 +14,7 @@ Add unleash-types to your Cargo file.
 
 ### Client metrics
 
-- client_metrics::ClientAppliction struct represents the data expected by an Unleash server in a POST to the `/api/client/register` endpoint
+- client_metrics::ClientApplication struct represents the data expected by an Unleash server in a POST to the `/api/client/register` endpoint
 - client_metrics::ClientMetrics struct represents the data expected by an Unleash server in a POST to the `/api/client/metrics` endpoint
 
 ### Frontend types
