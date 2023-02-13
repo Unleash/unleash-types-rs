@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 
 use crate::Merge;
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
@@ -65,7 +65,7 @@ impl ToggleStats {
     }
 }
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
@@ -95,7 +95,7 @@ pub fn from_bucket_app_name_and_env(
         .collect()
 }
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -106,7 +106,7 @@ pub struct ClientMetrics {
     pub instance_id: Option<String>,
 }
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -120,7 +120,7 @@ pub struct ClientMetricsEnv {
     pub variants: HashMap<String, u32>,
 }
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -129,7 +129,7 @@ pub struct ConnectVia {
     pub instance_id: String,
 }
 
-#[typeshare]
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
