@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.8.3 (2023-02-13)
 
+<csr-id-f9e6f0ece28af409e8a52550c581e1030ebf81e5/>
+
 ### Chore
 
  - <csr-id-f9e6f0ece28af409e8a52550c581e1030ebf81e5/> u64 might require special treatment
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release over the course of 2 calendar days.
+ - 3 commits contributed to the release over the course of 2 calendar days.
  - 3 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#21](https://github.com/Unleash/unleash-types-rs/issues/21)
@@ -33,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#21](https://github.com/Unleash/unleash-types-rs/issues/21)**
     - u64 might require special treatment ([`f9e6f0e`](https://github.com/Unleash/unleash-types-rs/commit/f9e6f0ece28af409e8a52550c581e1030ebf81e5))
  * **Uncategorized**
+    - Release unleash-types v0.8.3 ([`cb0112b`](https://github.com/Unleash/unleash-types-rs/commit/cb0112b0d32c4ebcddbee665776e883bca909fcf))
     - derive IntoParams for Query and Context ([`9d70f66`](https://github.com/Unleash/unleash-types-rs/commit/9d70f66674bac22ffbe77cf7108527827ce26206))
 </details>
 
