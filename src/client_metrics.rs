@@ -130,14 +130,14 @@ pub struct ClientApplication {
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
-    pub interval: u64,
+    pub interval: u32,
     pub sdk_version: Option<String>,
     pub started: DateTime<Utc>,
     pub strategies: Vec<String>,
 }
 
 impl ClientApplication {
-    pub fn new(app_name: &str, interval: u64) -> Self {
+    pub fn new(app_name: &str, interval: u32) -> Self {
         Self {
             app_name: app_name.into(),
             connect_via: Some(vec![]),
