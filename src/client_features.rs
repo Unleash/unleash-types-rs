@@ -3,6 +3,7 @@ use base64::Engine;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::{cmp::Ordering, collections::BTreeMap};
+#[cfg(feature = "generators")]
 use typeshare::typeshare;
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
@@ -46,7 +47,7 @@ pub enum Operator {
     SemverEq,
     SemverLt,
     SemverGt,
-    #[serde(skip)]
+    #[typeshare(skip)]
     Unknown(String),
 }
 

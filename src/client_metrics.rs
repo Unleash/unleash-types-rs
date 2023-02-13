@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "generators")]
 use typeshare::typeshare;
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
