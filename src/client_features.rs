@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::{cmp::Ordering, collections::BTreeMap};
 #[cfg(feature = "openapi")]
-use utoipa::ToSchema;
+use utoipa::{ToSchema, IntoParams};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -14,7 +14,7 @@ use xxhash_rust::xxh3::xxh3_128;
 use crate::{Deduplicate, Merge};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
     pub tags: Option<Vec<Vec<String>>>,
@@ -47,7 +47,7 @@ pub enum Operator {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub user_id: Option<String>,
