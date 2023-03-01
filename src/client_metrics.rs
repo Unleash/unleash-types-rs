@@ -309,7 +309,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started,
+            started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
@@ -365,7 +365,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started,
+            started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
@@ -411,7 +411,7 @@ mod tests {
             environment: None,
             instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
-            started: started,
+            started,
             strategies: vec!["default".into(), "gradualRollout".into()],
         };
 
