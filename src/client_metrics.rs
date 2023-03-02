@@ -4,11 +4,14 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "generators")]
+use typeshare::typeshare;
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
 use crate::Merge;
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
@@ -62,6 +65,7 @@ impl ToggleStats {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
@@ -91,6 +95,7 @@ pub fn from_bucket_app_name_and_env(
         .collect()
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -101,6 +106,7 @@ pub struct ClientMetrics {
     pub instance_id: Option<String>,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -114,6 +120,7 @@ pub struct ClientMetricsEnv {
     pub variants: HashMap<String, u32>,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, Builder, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -122,6 +129,7 @@ pub struct ConnectVia {
     pub instance_id: String,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]

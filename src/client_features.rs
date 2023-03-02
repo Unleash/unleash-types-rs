@@ -3,6 +3,8 @@ use base64::Engine;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::{cmp::Ordering, collections::BTreeMap};
+#[cfg(feature = "generators")]
+use typeshare::typeshare;
 #[cfg(feature = "openapi")]
 use utoipa::{IntoParams, ToSchema};
 
@@ -13,6 +15,7 @@ use xxhash_rust::xxh3::xxh3_128;
 
 use crate::{Deduplicate, Merge, Upsert};
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +27,7 @@ pub struct Query {
     pub inline_segment_constraints: Option<bool>,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -46,6 +50,7 @@ pub enum Operator {
     Unknown(String),
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
@@ -124,6 +129,7 @@ impl Default for Context {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 impl<'de> Deserialize<'de> for Operator {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -151,6 +157,7 @@ impl<'de> Deserialize<'de> for Operator {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -165,6 +172,7 @@ pub struct Constraint {
     pub value: Option<String>,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -173,6 +181,7 @@ pub enum WeightType {
     Variable,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -212,6 +221,7 @@ impl Ord for Strategy {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -220,6 +230,7 @@ pub struct Override {
     pub values: Vec<String>,
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct Payload {
@@ -227,6 +238,8 @@ pub struct Payload {
     pub payload_type: String,
     pub value: String,
 }
+
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -250,6 +263,7 @@ impl Ord for Variant {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -282,6 +296,7 @@ impl Hash for Segment {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Default)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -374,6 +389,7 @@ impl Hash for ClientFeature {
     }
 }
 
+#[cfg_attr(feature = "generators", typeshare)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
