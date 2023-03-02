@@ -7,6 +7,11 @@ pub trait Merge {
     fn merge(self, other: Self) -> Self;
 }
 
+pub trait Upsert {
+    /// If same entry exists in both self and other, should keep the one in other, if entry only exists in one, keep it.
+    fn upsert(self, other: Self) -> Self;
+}
+
 pub trait Deduplicate<T>
 where
     T: Hash + Eq,
@@ -23,6 +28,17 @@ where
             .collect::<HashSet<T>>()
             .into_iter()
             .collect()
+    }
+}
+
+impl<T> Upsert for Vec<T>
+where
+    T: Hash + Eq,
+{
+    fn upsert(self, other: Self) -> Self {
+        let mut upserted = other;
+        upserted.extend(self);
+        upserted.deduplicate()
     }
 }
 

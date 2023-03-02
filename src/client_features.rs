@@ -11,7 +11,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
-use crate::{Deduplicate, Merge};
+use crate::{Deduplicate, Merge, Upsert};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
@@ -302,8 +302,8 @@ pub struct ClientFeature {
 
 impl Merge for ClientFeatures {
     fn merge(self, other: Self) -> Self {
-        let features = self.features.merge(other.features);
-
+        let mut features = self.features.merge(other.features);
+        features.sort();
         let segments = match (self.segments, other.segments) {
             (Some(mut s), Some(o)) => {
                 s.extend(o);
@@ -315,11 +315,36 @@ impl Merge for ClientFeatures {
         };
         ClientFeatures {
             version: self.version.max(other.version),
-            features: features
-                .into_iter()
-                .collect::<Vec<ClientFeature>>()
-                .deduplicate(),
-            segments,
+            features,
+            segments: segments.map(|mut s| {
+                s.sort();
+                s
+            }),
+            query: self.query.or(other.query),
+        }
+    }
+}
+
+impl Upsert for ClientFeatures {
+    fn upsert(self, other: Self) -> Self {
+        let mut features = self.features.upsert(other.features);
+        features.sort();
+        let segments = match (self.segments, other.segments) {
+            (Some(mut s), Some(o)) => {
+                s.extend(o);
+                Some(s.deduplicate())
+            }
+            (Some(s), None) => Some(s),
+            (None, Some(o)) => Some(o),
+            (None, None) => None,
+        };
+        ClientFeatures {
+            version: self.version.max(other.version),
+            features,
+            segments: segments.map(|mut s| {
+                s.sort();
+                s
+            }),
             query: self.query.or(other.query),
         }
     }
@@ -374,9 +399,9 @@ impl ClientFeatures {
 mod tests {
     use std::{fs::File, io::BufReader, path::PathBuf};
 
-    use crate::{client_features::ClientFeature, Merge};
+    use crate::{client_features::ClientFeature, Merge, Upsert};
 
-    use super::{ClientFeatures, Constraint};
+    use super::{ClientFeatures, Constraint, Strategy};
     use test_case::test_case;
 
     #[derive(Debug)]
@@ -471,7 +496,7 @@ mod tests {
         let client_features_two = ClientFeatures {
             version: 2,
             features: vec![ClientFeature {
-                name: "feature1".into(),
+                name: "feature3".into(),
                 ..ClientFeature::default()
             }],
             segments: None,
@@ -479,6 +504,59 @@ mod tests {
         };
 
         let merged = client_features_one.merge(client_features_two);
-        assert_eq!(merged.features.len(), 2);
+        assert_eq!(merged.features.len(), 3);
+    }
+
+    #[test]
+    fn upserting_client_features_prioritizes_new_data_but_keeps_uniques() {
+        let client_features_one = ClientFeatures {
+            version: 2,
+            features: vec![
+                ClientFeature {
+                    name: "feature1".into(),
+                    ..ClientFeature::default()
+                },
+                ClientFeature {
+                    name: "feature2".into(),
+                    ..ClientFeature::default()
+                },
+            ],
+            segments: None,
+            query: None,
+        };
+        let mut updated_strategies = client_features_one.clone();
+        let updated_feature_one_with_strategy = ClientFeature {
+            name: "feature1".into(),
+            strategies: Some(vec![Strategy {
+                name: "default".into(),
+                sort_order: Some(124),
+                segments: None,
+                constraints: None,
+                parameters: None,
+            }]),
+            ..ClientFeature::default()
+        };
+        let feature_the_third = ClientFeature {
+            name: "feature3".into(),
+            strategies: Some(vec![Strategy {
+                name: "default".into(),
+                sort_order: Some(124),
+                segments: None,
+                constraints: None,
+                parameters: None,
+            }]),
+            ..ClientFeature::default()
+        };
+        updated_strategies.features = vec![updated_feature_one_with_strategy, feature_the_third];
+        let updated_features = client_features_one.upsert(updated_strategies);
+        let client_features = updated_features.features;
+        assert_eq!(client_features.len(), 3);
+        let updated_feature_one = client_features
+            .iter()
+            .find(|f| f.name == "feature1")
+            .unwrap();
+        assert_eq!(updated_feature_one.strategies.as_ref().unwrap().len(), 1);
+        assert!(client_features.iter().any(|f| f.name == "feature3"));
+        assert!(client_features.iter().any(|f| f.name == "feature2"));
     }
 }
