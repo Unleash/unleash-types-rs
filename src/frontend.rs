@@ -10,7 +10,7 @@ pub struct FrontendResult {
     pub toggles: Vec<EvaluatedToggle>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct EvaluatedToggle {
     pub name: String,
@@ -20,7 +20,7 @@ pub struct EvaluatedToggle {
     pub impression_data: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct EvaluatedVariant {
     pub name: String,
