@@ -14,7 +14,6 @@ pub struct FrontendResult {
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct EvaluatedToggle {
     pub name: String,
-    pub project: String,
     pub enabled: bool,
     pub variant: EvaluatedVariant,
     pub impression_data: bool,
