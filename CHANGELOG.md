@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.9.3 (2023-04-14)
+
+### Bug Fixes
+
+ - <csr-id-2c3f514788a644fa0d8cd87cbd4fc2e191d1403e/> Make properties an object in OpenAPI
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Make properties an object in OpenAPI ([`2c3f514`](https://github.com/Unleash/unleash-types-rs/commit/2c3f514788a644fa0d8cd87cbd4fc2e191d1403e))
+</details>
+
 ## v0.9.2 (2023-04-14)
 
 ### New Features
@@ -15,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 36 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release unleash-types v0.9.2 ([`773b815`](https://github.com/Unleash/unleash-types-rs/commit/773b815d54c0f74e56cf1ce6fdc3e57162522d0f))
     - Openapi intoparam details for properties field ([`6b6bc4d`](https://github.com/Unleash/unleash-types-rs/commit/6b6bc4ddd7040d101894c98ace9971caf381f631))
 </details>
 
