@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v0.9.3 (2023-04-14)
+## v0.9.4 (2023-04-14)
 
 ### Bug Fixes
 
- - <csr-id-2c3f514788a644fa0d8cd87cbd4fc2e191d1403e/> Make properties an object in OpenAPI
+ - <csr-id-8b54b3c9f6466a0a5253a5132b92bf84e9e1c730/> gather unknown fields in Context into properties
 
 ### Commit Statistics
 
@@ -26,6 +26,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Gather unknown fields in Context into properties ([`8b54b3c`](https://github.com/Unleash/unleash-types-rs/commit/8b54b3c9f6466a0a5253a5132b92bf84e9e1c730))
+</details>
+
+## v0.9.3 (2023-04-14)
+
+### Bug Fixes
+
+ - <csr-id-2c3f514788a644fa0d8cd87cbd4fc2e191d1403e/> Make properties an object in OpenAPI
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release unleash-types v0.9.3 ([`279931b`](https://github.com/Unleash/unleash-types-rs/commit/279931b6a6b4db6565c1ce1b725b4b056e4f1258))
     - Make properties an object in OpenAPI ([`2c3f514`](https://github.com/Unleash/unleash-types-rs/commit/2c3f514788a644fa0d8cd87cbd4fc2e191d1403e))
 </details>
 
