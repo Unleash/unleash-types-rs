@@ -62,6 +62,7 @@ pub struct Context {
         serialize_with = "optional_ordered_map"
     )]
     #[cfg_attr(feature = "openapi", param(style = Form, explode = true, value_type = Object))]
+    #[serde(flatten)]
     pub properties: Option<HashMap<String, String>>,
 }
 
