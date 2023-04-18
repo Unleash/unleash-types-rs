@@ -61,7 +61,7 @@ pub struct Context {
         deserialize_with = "remove_null_properties",
         serialize_with = "optional_ordered_map"
     )]
-    #[cfg_attr(feature = "openapi", param(style = DeepObject))]
+    #[cfg_attr(feature = "openapi", param(style = Form, explode = false))]
     pub properties: Option<HashMap<String, String>>,
 }
 
