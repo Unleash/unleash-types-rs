@@ -48,6 +48,7 @@ pub enum Operator {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
+#[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub user_id: Option<String>,
@@ -61,8 +62,7 @@ pub struct Context {
         deserialize_with = "remove_null_properties",
         serialize_with = "optional_ordered_map"
     )]
-    #[cfg_attr(feature = "openapi", param(style = Form, explode = true, value_type = Object))]
-    #[serde(flatten)]
+    #[cfg_attr(feature = "openapi", param(style = Form, explode = false, value_type = Object))]
     pub properties: Option<HashMap<String, String>>,
 }
 
@@ -399,11 +399,13 @@ impl ClientFeatures {
 
 #[cfg(test)]
 mod tests {
+    use serde_qs::Config;
     use std::{fs::File, io::BufReader, path::PathBuf};
 
     use crate::{client_features::ClientFeature, Merge, Upsert};
 
     use super::{ClientFeatures, Constraint, Strategy};
+    use crate::client_features::Context;
     use test_case::test_case;
 
     #[derive(Debug)]
@@ -560,5 +562,21 @@ mod tests {
         assert_eq!(updated_feature_one.strategies.as_ref().unwrap().len(), 1);
         assert!(client_features.iter().any(|f| f.name == "feature3"));
         assert!(client_features.iter().any(|f| f.name == "feature2"));
+    }
+
+    #[test]
+    pub fn can_parse_properties_map_from_get_query_string() {
+        let config = Config::new(5, false);
+        let query_string =
+            "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks&properties%5Bhello%5D=world";
+        let context: Context = config
+            .deserialize_str(query_string)
+            .expect("Could not parse query string");
+        assert_eq!(context.user_id, Some("123123".to_string()));
+        let prop_map = context.properties.unwrap();
+        assert_eq!(prop_map.len(), 3);
+        assert!(prop_map.contains_key("companyId"));
+        assert!(prop_map.contains_key("hello"));
+        assert!(prop_map.contains_key("email"));
     }
 }
