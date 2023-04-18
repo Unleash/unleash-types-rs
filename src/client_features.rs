@@ -48,6 +48,7 @@ pub enum Operator {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
+#[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
     pub user_id: Option<String>,
@@ -61,7 +62,7 @@ pub struct Context {
         deserialize_with = "remove_null_properties",
         serialize_with = "optional_ordered_map"
     )]
-    #[cfg_attr(feature = "openapi", param(style = Form, explode = false))]
+    #[cfg_attr(feature = "openapi", param(style = Form, explode = false, value_type = Object))]
     pub properties: Option<HashMap<String, String>>,
 }
 
@@ -565,12 +566,17 @@ mod tests {
 
     #[test]
     pub fn can_parse_properties_map_from_get_query_string() {
-        let config = Config::new(0, false);
+        let config = Config::new(5, false);
         let query_string =
-            "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks";
+            "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks&properties%5Bhello%5D=world";
         let context: Context = config
             .deserialize_str(query_string)
             .expect("Could not parse query string");
-        assert_eq!(context.properties.unwrap().len(), 2);
+        assert_eq!(context.user_id, Some("123123".to_string()));
+        let prop_map = context.properties.unwrap();
+        assert_eq!(prop_map.len(), 3);
+        assert!(prop_map.contains_key("companyId"));
+        assert!(prop_map.contains_key("hello"));
+        assert!(prop_map.contains_key("email"));
     }
 }
