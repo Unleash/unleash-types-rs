@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.10.0 (2023-04-18)
+
+### Bug Fixes
+
+ - <csr-id-22b2912072c2ba089516f54dbcbf39cba23c5979/> updated to not flatten properties map
+   Also declares IntoParams as belonging to Query, not to Path, to allow utoipa to build correct openAPI spec
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 4 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#25](https://github.com/Unleash/unleash-types-rs/issues/25)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#25](https://github.com/Unleash/unleash-types-rs/issues/25)**
+    - Updated to not flatten properties map ([`22b2912`](https://github.com/Unleash/unleash-types-rs/commit/22b2912072c2ba089516f54dbcbf39cba23c5979))
+</details>
+
 ## v0.9.4 (2023-04-14)
 
 ### Bug Fixes
@@ -15,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -26,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release unleash-types v0.9.4 ([`c1843f1`](https://github.com/Unleash/unleash-types-rs/commit/c1843f16cb0d3343e3a51f38794b3ce7a7e932c7))
     - Gather unknown fields in Context into properties ([`8b54b3c`](https://github.com/Unleash/unleash-types-rs/commit/8b54b3c9f6466a0a5253a5132b92bf84e9e1c730))
 </details>
 
