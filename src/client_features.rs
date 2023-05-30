@@ -332,9 +332,9 @@ impl Upsert for ClientFeatures {
         let mut features = self.features.upsert(other.features);
         features.sort();
         let segments = match (self.segments, other.segments) {
-            (Some(mut s), Some(o)) => {
-                s.extend(o);
-                Some(s.deduplicate())
+            (Some(s), Some(mut o)) => {
+                o.extend(s);
+                Some(o.deduplicate())
             }
             (Some(s), None) => Some(s),
             (None, Some(o)) => Some(o),
@@ -404,7 +404,7 @@ mod tests {
 
     use crate::{client_features::ClientFeature, Merge, Upsert};
 
-    use super::{ClientFeatures, Constraint, Strategy};
+    use super::{ClientFeatures, Constraint, Operator, Segment, Strategy};
     use crate::client_features::Context;
     use test_case::test_case;
 
@@ -578,5 +578,107 @@ mod tests {
         assert!(prop_map.contains_key("companyId"));
         assert!(prop_map.contains_key("hello"));
         assert!(prop_map.contains_key("email"));
+    }
+
+    #[test]
+    pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_segments() {
+        let client_features_one = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: Some(vec![
+                Segment {
+                    constraints: vec![Constraint {
+                        case_insensitive: false,
+                        values: None,
+                        context_name: "location".into(),
+                        inverted: false,
+                        operator: Operator::In,
+                        value: Some("places".into()),
+                    }],
+                    id: 1,
+                },
+                Segment {
+                    constraints: vec![Constraint {
+                        case_insensitive: false,
+                        values: None,
+                        context_name: "hometown".into(),
+                        inverted: false,
+                        operator: Operator::In,
+                        value: Some("somewhere_nice".into()),
+                    }],
+                    id: 2,
+                },
+            ]),
+            query: None,
+        };
+        let client_features_two = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: Some(vec![
+                Segment {
+                    constraints: vec![Constraint {
+                        case_insensitive: false,
+                        values: None,
+                        context_name: "location".into(),
+                        inverted: false,
+                        operator: Operator::In,
+                        value: Some("other-places".into()),
+                    }],
+                    id: 1,
+                },
+                Segment {
+                    constraints: vec![Constraint {
+                        case_insensitive: false,
+                        values: None,
+                        context_name: "origin".into(),
+                        inverted: false,
+                        operator: Operator::In,
+                        value: Some("africa".into()),
+                    }],
+                    id: 3,
+                },
+            ]),
+            query: None,
+        };
+
+        let expected = vec![
+            Constraint {
+                case_insensitive: false,
+                values: None,
+                context_name: "hometown".into(),
+                inverted: false,
+                operator: Operator::In,
+                value: Some("somewhere_nice".into()),
+            },
+            Constraint {
+                case_insensitive: false,
+                values: None,
+                context_name: "location".into(),
+                inverted: false,
+                operator: Operator::In,
+                value: Some("other-places".into()),
+            },
+            Constraint {
+                case_insensitive: false,
+                values: None,
+                context_name: "origin".into(),
+                inverted: false,
+                operator: Operator::In,
+                value: Some("africa".into()),
+            },
+        ];
+
+        let upserted = client_features_one
+            .clone()
+            .upsert(client_features_two.clone());
+        let mut new_constraints = upserted
+            .segments
+            .unwrap()
+            .iter()
+            .flat_map(|segment| segment.constraints.clone())
+            .collect::<Vec<Constraint>>();
+        new_constraints.sort_by(|a, b| a.context_name.cmp(&b.context_name));
+
+        assert_eq!(new_constraints, expected);
     }
 }
