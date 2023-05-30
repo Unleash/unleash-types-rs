@@ -581,7 +581,7 @@ mod tests {
     }
 
     #[test]
-    pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_constraints() {
+    pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_segments() {
         let client_features_one = ClientFeatures {
             version: 2,
             features: vec![],
