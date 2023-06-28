@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.10.3 (2023-06-28)
+
+### Chore
+
+ - <csr-id-a5ae89ee2994e36c0a9149916b5b2a7846dd2025/> cargo update
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Cargo update ([`a5ae89e`](https://github.com/Unleash/unleash-types-rs/commit/a5ae89ee2994e36c0a9149916b5b2a7846dd2025))
+</details>
+
 ## v0.10.2 (2023-06-28)
 
 ### Bug Fixes
@@ -15,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 29 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#27](https://github.com/Unleash/unleash-types-rs/issues/27)
@@ -28,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#27](https://github.com/Unleash/unleash-types-rs/issues/27)**
     - Skip serializing if option is none ([`2af3008`](https://github.com/Unleash/unleash-types-rs/commit/2af300839432434ffad713f28dd33986e14928da))
+ * **Uncategorized**
+    - Release unleash-types v0.10.2 ([`5be22b3`](https://github.com/Unleash/unleash-types-rs/commit/5be22b3ca17d8815b016a12dfec840454bd96cb6))
 </details>
 
 ## v0.10.1 (2023-05-30)
