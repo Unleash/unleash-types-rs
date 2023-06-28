@@ -17,10 +17,15 @@ use crate::{Deduplicate, Merge, Upsert};
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<Vec<String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub projects: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub inline_segment_constraints: Option<bool>,
 }
 
@@ -51,16 +56,23 @@ pub enum Operator {
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub current_time: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub remote_address: Option<String>,
     #[serde(default)]
     #[serde(
         deserialize_with = "remove_null_properties",
-        serialize_with = "optional_ordered_map"
+        serialize_with = "optional_ordered_map",
+        skip_serializing_if = "Option::is_none"
     )]
     #[cfg_attr(feature = "openapi", param(style = Form, explode = false, value_type = Object))]
     pub properties: Option<HashMap<String, String>>,
@@ -163,7 +175,9 @@ pub struct Constraint {
     pub case_insensitive: bool,
     #[serde(default)]
     pub inverted: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub values: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
 }
 
@@ -180,10 +194,16 @@ pub enum WeightType {
 #[serde(rename_all = "camelCase")]
 pub struct Strategy {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_order: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub segments: Option<Vec<i32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub constraints: Option<Vec<Constraint>>,
-    #[serde(serialize_with = "optional_ordered_map")]
+    #[serde(
+        serialize_with = "optional_ordered_map",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub parameters: Option<HashMap<String, String>>,
 }
 
@@ -235,9 +255,13 @@ pub struct Payload {
 pub struct Variant {
     pub name: String,
     pub weight: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub weight_type: Option<WeightType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stickiness: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub payload: Option<Payload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub overrides: Option<Vec<Override>>,
 }
 
@@ -289,16 +313,24 @@ impl Hash for Segment {
 #[serde(rename_all = "camelCase")]
 pub struct ClientFeature {
     pub name: String,
-    #[serde(rename = "type")]
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub feature_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_seen_at: Option<DateTime<Utc>>,
     pub enabled: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stale: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub impression_data: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub project: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub strategies: Option<Vec<Strategy>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub variants: Option<Vec<Variant>>,
 }
 
@@ -381,6 +413,7 @@ impl Hash for ClientFeature {
 pub struct ClientFeatures {
     pub version: u32,
     pub features: Vec<ClientFeature>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
 }
@@ -581,7 +614,8 @@ mod tests {
     }
 
     #[test]
-    pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_segments() {
+    pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_segments(
+    ) {
         let client_features_one = ClientFeatures {
             version: 2,
             features: vec![],
