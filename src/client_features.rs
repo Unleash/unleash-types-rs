@@ -11,6 +11,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
+use crate::frontend::EvaluatedVariant;
 use crate::{Deduplicate, Merge, Upsert};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -205,6 +206,7 @@ pub struct Strategy {
         skip_serializing_if = "Option::is_none"
     )]
     pub parameters: Option<HashMap<String, String>>,
+    pub variant: Option<EvaluatedVariant>,
 }
 
 impl PartialEq for Strategy {
@@ -570,6 +572,7 @@ mod tests {
                 segments: None,
                 constraints: None,
                 parameters: None,
+                variant: None,
             }]),
             ..ClientFeature::default()
         };
@@ -581,6 +584,7 @@ mod tests {
                 segments: None,
                 constraints: None,
                 parameters: None,
+                variant: None,
             }]),
             ..ClientFeature::default()
         };
