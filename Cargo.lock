@@ -427,7 +427,7 @@ checksum = "b15811caf2415fb889178633e7724bad2509101cde276048e013b9def5e51fa0"
 
 [[package]]
 name = "unleash-types"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "base64",
  "chrono",
