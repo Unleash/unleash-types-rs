@@ -68,6 +68,7 @@ mod tests {
     #[test_case("14-constraint-semver-operators"; "can parse semver constraints")]
     #[test_case("15-global-constraints"; "can parse segments")]
     #[test_case("features_with_variantType"; "can handle weightType being part of content")]
+    #[test_case("16-strategy-variants"; "can parse strategy variants")]
     pub fn run_parse_test(file_path: &str) {
         let content = fs::read_to_string(format!("./examples/{file_path}.json"))
             .expect("Could not read file");

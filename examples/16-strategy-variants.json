@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "name": "Feature.strategy.variant.with.constraint",
+      "description": "Strategy variants based on constraint",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "flexibleRollout",
+          "variants": [
+            {
+              "name": "variantName",
+              "weight": 1,
+              "payload": {
+                "type": "string",
+                "value": "variantValue"
+              }
+            }
+          ],
+          "parameters": {
+            "rollout": "100",
+            "stickiness": "default",
+            "groupId": "a"
+          },
+          "constraints": [
+            {
+              "contextName": "environment",
+              "operator": "IN",
+              "values": ["dev"]
+            }
+          ]
+        }
+      ],
+      "variants": []
+    },
+    {
+      "name": "Feature.strategy.variant.overrides.feature.variant",
+      "description": "Strategy variants with feature variants",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "flexibleRollout",
+          "parameters": {
+            "rollout": "100",
+            "stickiness": "default",
+            "groupId": "a"
+          },
+          "variants": [
+            {
+              "name": "variantName",
+              "weight": 1,
+              "payload": {
+                "type": "string",
+                "value": "variantValue"
+              }
+            }
+          ],
+          "constraints": [
+            {
+              "contextName": "environment",
+              "operator": "IN",
+              "values": ["dev"]
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "name": "featureVariant",
+          "weight": 1,
+          "payload": {
+            "type": "string",
+            "value": "willBeIgnored"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feature.strategy.multiple.variants",
+      "description": "Strategy variants with multiple options",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "flexibleRollout",
+          "parameters": {
+            "rollout": "100",
+            "stickiness": "default",
+            "groupId": "a"
+          },
+          "variants": [
+            {
+              "name": "variantNameA",
+              "weight": 1,
+              "payload": {
+                "type": "string",
+                "value": "variantValueA"
+              }
+            },
+            {
+              "name": "variantNameB",
+              "weight": 1,
+              "payload": {
+                "type": "string",
+                "value": "variantValueB"
+              }
+            }
+          ],
+          "constraints": []
+        }
+      ],
+      "variants": []
+    },
+    {
+      "name": "Feature.strategy.empty.variants",
+      "description": "Strategy variants with empty variant options",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "flexibleRollout",
+          "variants": [],
+          "parameters": {
+            "rollout": "100",
+            "stickiness": "default",
+            "groupId": "a"
+          },
+          "constraints": []
+        }
+      ],
+      "variants": []
+    },
+    {
+      "name": "Feature.strategy.variant.fallback",
+      "description": "Strategy variants fall back to feature variants",
+      "enabled": true,
+      "strategies": [
+        {
+          "name": "flexibleRollout",
+          "parameters": {
+            "rollout": "100",
+            "stickiness": "default",
+            "groupId": "a"
+          }
+        }
+      ],
+      "variants": [
+        {
+          "name": "featureVariant",
+          "weight": 1,
+          "payload": {
+            "type": "string",
+            "value": "fallbackValue"
+          }
+        }
+      ]
+    }
+  ]
+}

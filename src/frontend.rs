@@ -19,15 +19,10 @@ pub struct EvaluatedToggle {
     pub impression_data: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct EvaluatedVariant {
     pub name: String,
-    #[serde(default = "default_true")]
     pub enabled: bool,
     pub payload: Option<Payload>,
-}
-
-fn default_true() -> bool {
-    true
 }

@@ -11,7 +11,6 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
-use crate::frontend::EvaluatedVariant;
 use crate::{Deduplicate, Merge, Upsert};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -206,7 +205,7 @@ pub struct Strategy {
         skip_serializing_if = "Option::is_none"
     )]
     pub parameters: Option<HashMap<String, String>>,
-    pub variant: Option<EvaluatedVariant>,
+    pub variants: Option<Vec<StrategyVariant>>,
 }
 
 impl PartialEq for Strategy {
@@ -265,6 +264,16 @@ pub struct Variant {
     pub payload: Option<Payload>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub overrides: Option<Vec<Override>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct StrategyVariant {
+    pub name: String,
+    pub weight: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payload: Option<Payload>,
 }
 
 impl PartialOrd for Variant {
@@ -572,7 +581,7 @@ mod tests {
                 segments: None,
                 constraints: None,
                 parameters: None,
-                variant: None,
+                variants: None,
             }]),
             ..ClientFeature::default()
         };
@@ -584,7 +593,7 @@ mod tests {
                 segments: None,
                 constraints: None,
                 parameters: None,
-                variant: None,
+                variants: None,
             }]),
             ..ClientFeature::default()
         };
