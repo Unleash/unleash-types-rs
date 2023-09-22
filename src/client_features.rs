@@ -78,6 +78,35 @@ pub struct Context {
     pub properties: Option<HashMap<String, String>>,
 }
 
+const KNOWN_KEYS: [&'static str; 7] = [
+    "userId",
+    "currentTime",
+    "remoteAddress",
+    "properties",
+    "sessionId",
+    "appName",
+    "environment",
+];
+impl Context {
+    pub fn with_extra_params(&self, params: Vec<(String, String)>) -> Self {
+        let mut props = self.properties.clone().unwrap_or_else(|| HashMap::new());
+        params
+            .iter()
+            .filter(|f| !KNOWN_KEYS.contains(&f.0.as_str()))
+            .for_each(|(k, v)| {
+                props.insert(k.clone(), v.clone());
+            });
+        if !props.is_empty() {
+            Self {
+                properties: Some(props),
+                ..self.clone()
+            }
+        } else {
+            self.clone()
+        }
+    }
+}
+
 // I know this looks silly but it's also important for two reasons:
 // The first is that the client spec tests have a test case that has a context defined like:
 // {
@@ -626,6 +655,42 @@ mod tests {
         assert!(prop_map.contains_key("email"));
     }
 
+    #[test]
+    pub fn properties_map_extends_from_unknown_properties() {
+        let config = Config::new(5, false);
+        let query_string = "userId=123123&email=test@test.com&companyId=bricks&hello=world";
+        let urlencoded = serde_urlencoded::from_str::<Vec<(String, String)>>(query_string.clone());
+        let mut context: Context = config
+            .deserialize_str(query_string)
+            .expect("Could not parse query string");
+        context = context.with_extra_params(urlencoded.unwrap());
+        assert_eq!(context.user_id, Some("123123".to_string()));
+        let prop_map = context.properties.unwrap();
+        assert_eq!(prop_map.len(), 3);
+        assert!(prop_map.contains_key("companyId"));
+        assert!(prop_map.contains_key("hello"));
+        assert!(prop_map.contains_key("email"));
+    }
+
+    #[test]
+    pub fn with_extra_params_respects_props_set_with_square_brackets() {
+        let config = Config::new(5, false);
+        let query_string =
+            "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks&properties%5Bhello%5D=world&someunknown=property";
+        let mut context: Context = config
+            .deserialize_str(query_string)
+            .expect("Could not parse query string");
+        let urlencoded =
+            serde_urlencoded::from_str::<Vec<(String, String)>>(query_string.clone()).unwrap();
+        context = context.with_extra_params(urlencoded);
+        assert_eq!(context.user_id, Some("123123".to_string()));
+        let prop_map = context.properties.unwrap();
+        assert_eq!(prop_map.len(), 4);
+        assert!(prop_map.contains_key("companyId"));
+        assert!(prop_map.contains_key("hello"));
+        assert!(prop_map.contains_key("email"));
+        assert!(prop_map.contains_key("someunknown"));
+    }
     #[test]
     pub fn upserting_features_with_segments_overrides_constraints_on_segments_with_same_id_but_keeps_non_overlapping_segments(
     ) {
