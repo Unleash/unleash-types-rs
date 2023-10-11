@@ -319,6 +319,17 @@ impl Hash for Segment {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureDependency {
+    pub feature: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub variants: Option<Vec<String>>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Default)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
@@ -343,6 +354,8 @@ pub struct ClientFeature {
     pub strategies: Option<Vec<Strategy>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub variants: Option<Vec<Variant>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dependencies: Option<Vec<FeatureDependency>>,
 }
 
 impl Merge for ClientFeatures {
