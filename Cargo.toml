@@ -15,11 +15,11 @@ openapi = ["utoipa"]
 hashes = ["xxhash-rust", "base64"]
 [dependencies]
 base64 = { version = "0.21.0", optional = true }
-chrono = { version = "0.4.24", features = ["serde"] }
+chrono = { version = "0.4.31", features = ["serde"] }
 derive_builder = "0.12.0"
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = "1.0.96"
-utoipa = { version = "3.2.1", optional = true, features = ["chrono"] }
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+utoipa = { version = "4.0.0", optional = true, features = ["chrono"] }
 xxhash-rust = { version = "0.8.6", features = ["xxh3"], optional = true}
 [dev-dependencies]
 serde_qs = "0.12.0"
