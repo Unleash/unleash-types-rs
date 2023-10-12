@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.10.5 (2023-10-12)
 
+<csr-id-fd005f9d91bb2b2b2b7095136bea165c653814b1/>
+
 ### Chore
 
  - <csr-id-fd005f9d91bb2b2b2b7095136bea165c653814b1/> Bumps utoipa to new major version
@@ -25,15 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    ## Commits
    
    * feat: add `dependencies` property to client feature struct
-   
-   This change adds the `dependencies` property to the client feature
-   struct, opening the path for dependent feature toggles:
 
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release.
+ - 3 commits contributed to the release.
  - 89 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 2 unique issues were worked on: [#30](https://github.com/Unleash/unleash-types-rs/issues/30), [#31](https://github.com/Unleash/unleash-types-rs/issues/31)
@@ -48,7 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Add `dependencies` property to client feature struct ([`573d86d`](https://github.com/Unleash/unleash-types-rs/commit/573d86d96366a9500fbbd297ec40e607902d1eb4))
  * **[#31](https://github.com/Unleash/unleash-types-rs/issues/31)**
     - Bumps utoipa to new major version ([`fd005f9`](https://github.com/Unleash/unleash-types-rs/commit/fd005f9d91bb2b2b2b7095136bea165c653814b1))
+ * **Uncategorized**
+    - Release unleash-types v0.10.5 ([`f96028e`](https://github.com/Unleash/unleash-types-rs/commit/f96028ec74e697915a9b7f7c0863babba79e7b92))
 </details>
+
+<csr-unknown>
+This change adds the dependencies property to the client featurestruct, opening the path for dependent feature toggles:<csr-unknown/>
 
 ## v0.10.4 (2023-07-14)
 
