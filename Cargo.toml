@@ -1,6 +1,6 @@
 [package]
 name = "unleash-types"
-version = "0.10.5"
+version = "0.10.6"
 edition = "2021"
 authors = ["Christopher Kolstad <chriswk@getunleash.ai>", "Simon Hornby <liquidwicked64@gmail.com>"]
 license = "MIT"
