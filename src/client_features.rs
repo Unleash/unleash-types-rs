@@ -205,7 +205,19 @@ pub struct Strategy {
         skip_serializing_if = "Option::is_none"
     )]
     pub parameters: Option<HashMap<String, String>>,
+    #[serde(serialize_with = "serialize_option_vec")]
     pub variants: Option<Vec<StrategyVariant>>,
+}
+
+fn serialize_option_vec<S, T>(value: &Option<Vec<T>>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: Serialize,
+{
+    match value {
+        Some(ref v) => v.serialize(serializer),
+        None => Vec::<T>::new().serialize(serializer),
+    }
 }
 
 impl PartialEq for Strategy {
@@ -637,6 +649,33 @@ mod tests {
         assert!(prop_map.contains_key("companyId"));
         assert!(prop_map.contains_key("hello"));
         assert!(prop_map.contains_key("email"));
+    }
+
+    #[test]
+    pub fn when_strategy_variants_is_none_default_to_empty_vec() {
+        let client_features = ClientFeatures {
+            version: 2,
+            features: vec![
+                ClientFeature {
+                    name: "feature1".into(),
+                    strategies: Some(vec![Strategy {
+                        name: "default".into(),
+                        sort_order: Some(124),
+                        segments: None,
+                        constraints: None,
+                        parameters: None,
+                        variants: None
+                    }]),
+                    ..ClientFeature::default()
+                },
+            ],
+            segments: None,
+            query: None,
+        };
+        let client_features_json = serde_json::to_string(&client_features).unwrap();
+        let client_features_parsed: ClientFeatures = serde_json::from_str(&client_features_json).unwrap();
+        let strategy = client_features_parsed.features.first().unwrap().strategies.as_ref().unwrap().first().unwrap();
+        assert_eq!(strategy.variants.as_ref().unwrap().len(), 0);
     }
 
     #[test]
