@@ -155,7 +155,7 @@ impl ClientApplication {
             .strategies
             .clone()
             .into_iter()
-            .chain(strategies.into_iter())
+            .chain(strategies)
             .collect::<HashSet<String>>()
             .into_iter()
             .collect();
@@ -182,7 +182,7 @@ impl Merge for ClientApplication {
         let mut merged_strategies: Vec<String> = self
             .strategies
             .into_iter()
-            .chain(other.strategies.into_iter())
+            .chain(other.strategies)
             .collect::<HashSet<String>>()
             .into_iter()
             .collect();
