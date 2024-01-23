@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.11.0 (2024-01-23)
+
+### Bug Fixes
+
+ - <csr-id-9afeb15350d9167bcb1a9e82dee43bdb26e29f8c/> add stickiness to strategy variants
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 54 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#34](https://github.com/Unleash/unleash-types-rs/issues/34)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#34](https://github.com/Unleash/unleash-types-rs/issues/34)**
+    - Add stickiness to strategy variants ([`9afeb15`](https://github.com/Unleash/unleash-types-rs/commit/9afeb15350d9167bcb1a9e82dee43bdb26e29f8c))
+</details>
+
+## v0.10.6 (2023-11-30)
+
+### Chore
+
+ - <csr-id-edf3920d67803952d7e8f1c604179375a5988844/> Release unleash-types version 0.10.6
+
+### Bug Fixes
+
+ - <csr-id-dfadfc58aaef528332562bd1606e8d9b821c53f3/> none strategy variants should serialize as empty array
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 49 days passed between releases.
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#32](https://github.com/Unleash/unleash-types-rs/issues/32)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#32](https://github.com/Unleash/unleash-types-rs/issues/32)**
+    - None strategy variants should serialize as empty array ([`dfadfc5`](https://github.com/Unleash/unleash-types-rs/commit/dfadfc58aaef528332562bd1606e8d9b821c53f3))
+ * **Uncategorized**
+    - Release unleash-types version 0.10.6 ([`edf3920`](https://github.com/Unleash/unleash-types-rs/commit/edf3920d67803952d7e8f1c604179375a5988844))
+</details>
+
 ## v0.10.5 (2023-10-12)
 
 <csr-id-fd005f9d91bb2b2b2b7095136bea165c653814b1/>
@@ -32,7 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 4 commits contributed to the release.
+ - 5 commits contributed to the release.
  - 89 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 2 unique issues were worked on: [#30](https://github.com/Unleash/unleash-types-rs/issues/30), [#31](https://github.com/Unleash/unleash-types-rs/issues/31)
@@ -48,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  * **[#31](https://github.com/Unleash/unleash-types-rs/issues/31)**
     - Bumps utoipa to new major version ([`fd005f9`](https://github.com/Unleash/unleash-types-rs/commit/fd005f9d91bb2b2b2b7095136bea165c653814b1))
  * **Uncategorized**
+    - Release unleash-types v0.10.5 ([`0e4303f`](https://github.com/Unleash/unleash-types-rs/commit/0e4303f2c3bd1cbebb9d5d46d100e957ad0f10c7))
     - Release unleash-types v0.10.5 ([`90cd590`](https://github.com/Unleash/unleash-types-rs/commit/90cd590df9d53af5da8832bad0d8ae0273c9bcf1))
     - Release unleash-types v0.10.5 ([`f96028e`](https://github.com/Unleash/unleash-types-rs/commit/f96028ec74e697915a9b7f7c0863babba79e7b92))
 </details>
