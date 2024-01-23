@@ -286,6 +286,8 @@ pub struct StrategyVariant {
     pub weight: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payload: Option<Payload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stickiness: Option<String>,
 }
 
 impl PartialOrd for Variant {
