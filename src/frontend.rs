@@ -6,12 +6,14 @@ use utoipa::ToSchema;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct FrontendResult {
     pub toggles: Vec<EvaluatedToggle>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct EvaluatedToggle {
     pub name: String,
     pub enabled: bool,
@@ -21,6 +23,7 @@ pub struct EvaluatedToggle {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct EvaluatedVariant {
     pub name: String,
     pub enabled: bool,
