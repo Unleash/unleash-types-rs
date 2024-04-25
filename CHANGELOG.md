@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.12.0 (2024-04-25)
+
+### Bug Fixes
+
+ - <csr-id-1717a61b1eb7c29f6a902e30c921f29dca3bc95b/> convert frontend responses to camel case
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 92 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 1 unique issue was worked on: [#36](https://github.com/Unleash/unleash-types-rs/issues/36)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#36](https://github.com/Unleash/unleash-types-rs/issues/36)**
+    - Convert frontend responses to camel case ([`1717a61`](https://github.com/Unleash/unleash-types-rs/commit/1717a61b1eb7c29f6a902e30c921f29dca3bc95b))
+</details>
+
 ## v0.11.0 (2024-01-23)
 
 ### Bug Fixes
@@ -15,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 54 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#34](https://github.com/Unleash/unleash-types-rs/issues/34)
@@ -28,9 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#34](https://github.com/Unleash/unleash-types-rs/issues/34)**
     - Add stickiness to strategy variants ([`9afeb15`](https://github.com/Unleash/unleash-types-rs/commit/9afeb15350d9167bcb1a9e82dee43bdb26e29f8c))
+ * **Uncategorized**
+    - Release unleash-types v0.11.0 ([`5645d74`](https://github.com/Unleash/unleash-types-rs/commit/5645d7425902c6298286884c1f4c9577b1bd370f))
 </details>
 
 ## v0.10.6 (2023-11-30)
+
+<csr-id-edf3920d67803952d7e8f1c604179375a5988844/>
 
 ### Chore
 
