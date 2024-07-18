@@ -216,6 +216,21 @@ mod tests {
 
     use super::*;
 
+    impl Default for ClientApplication {
+        fn default() -> Self {
+            Self {
+                app_name: Default::default(),
+                connect_via: Default::default(),
+                environment: Default::default(),
+                instance_id: Default::default(),
+                interval: Default::default(),
+                sdk_version: Default::default(),
+                started: Default::default(),
+                strategies: Default::default(),
+            }
+        }
+    }
+
     #[test]
     pub fn can_increment_counts() {
         let mut stats = ToggleStats::default();
@@ -280,7 +295,6 @@ mod tests {
     pub fn merging_two_client_applications_should_use_set_values() {
         let demo_data_orig = ClientApplication::new("demo", 15000);
         let demo_data_with_more_data = ClientApplication {
-            connect_via: None,
             app_name: "demo".into(),
             interval: 15500,
             environment: Some("development".into()),
@@ -288,6 +302,7 @@ mod tests {
             sdk_version: Some("unleash-client-java:7.1.0".into()),
             started: Utc::now(),
             strategies: vec!["default".into(), "gradualRollout".into()],
+            ..Default::default()
         };
         // Cloning orig here, to avoid the destructive merge preventing us from testing
         let merged = demo_data_orig.clone().merge(demo_data_with_more_data);
@@ -303,25 +318,21 @@ mod tests {
     pub fn merging_two_client_applications_prioritizes_left_hand_side() {
         let started = Utc::now();
         let demo_data_1 = ClientApplication {
-            connect_via: None,
             app_name: "demo".into(),
             interval: 15500,
-            environment: None,
-            instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
             started,
             strategies: vec!["default".into(), "gradualRollout".into()],
+            ..Default::default()
         };
 
         let demo_data_2 = ClientApplication {
-            connect_via: None,
             app_name: "demo".into(),
             interval: 15500,
             environment: Some("production".into()),
-            instance_id: None,
-            sdk_version: None,
             started,
             strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
         };
 
         let left = demo_data_2.clone().merge(demo_data_1.clone());
@@ -333,14 +344,12 @@ mod tests {
     #[test]
     pub fn can_connect_via_new_application() {
         let demo_data = ClientApplication {
-            connect_via: None,
             app_name: "demo".into(),
             interval: 15500,
             environment: Some("production".into()),
-            instance_id: None,
-            sdk_version: None,
             started: Utc::now(),
             strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
         };
         let connected_via = demo_data.connect_via("unleash-edge", "edge-id-1");
         assert_eq!(
@@ -362,11 +371,10 @@ mod tests {
             }]),
             app_name: "demo".into(),
             interval: 15500,
-            environment: None,
-            instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
             started,
             strategies: vec!["default".into(), "gradualRollout".into()],
+            ..Default::default()
         };
 
         let demo_data_2 = ClientApplication {
@@ -377,10 +385,9 @@ mod tests {
             app_name: "demo".into(),
             interval: 15500,
             environment: Some("production".into()),
-            instance_id: None,
-            sdk_version: None,
             started,
             strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
         };
 
         let merged = demo_data_1.merge(demo_data_2);
@@ -405,14 +412,12 @@ mod tests {
     pub fn can_merge_connected_via_where_one_side_is_none() {
         let started = Utc::now();
         let demo_data_1 = ClientApplication {
-            connect_via: None,
             app_name: "demo".into(),
             interval: 15500,
-            environment: None,
-            instance_id: None,
             sdk_version: Some("unleash-client-java:7.1.0".into()),
             started,
             strategies: vec!["default".into(), "gradualRollout".into()],
+            ..Default::default()
         };
 
         let demo_data_2 = ClientApplication {
@@ -423,10 +428,9 @@ mod tests {
             app_name: "demo".into(),
             interval: 15500,
             environment: Some("production".into()),
-            instance_id: None,
-            sdk_version: None,
             started,
             strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
         };
         let merged = demo_data_1.clone().merge(demo_data_2.clone());
         assert_eq!(demo_data_2.connect_via, merged.connect_via);
