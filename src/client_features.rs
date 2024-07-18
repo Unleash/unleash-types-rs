@@ -231,11 +231,7 @@ impl PartialEq for Strategy {
 }
 impl PartialOrd for Strategy {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.sort_order.partial_cmp(&other.sort_order) {
-            Some(core::cmp::Ordering::Equal) => self.name.partial_cmp(&other.name),
-            Some(s) => Some(s),
-            None => self.name.partial_cmp(&other.name),
-        }
+        Some(self.cmp(other))
     }
 }
 impl Ord for Strategy {
@@ -292,7 +288,7 @@ pub struct StrategyVariant {
 
 impl PartialOrd for Variant {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.name.partial_cmp(&other.name)
+        Some(self.cmp(other))
     }
 }
 impl Ord for Variant {
@@ -317,7 +313,7 @@ impl PartialEq for Segment {
 
 impl PartialOrd for Segment {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.id.partial_cmp(&other.id)
+        Some(self.cmp(other))
     }
 }
 
@@ -424,7 +420,7 @@ impl Upsert for ClientFeatures {
 
 impl PartialOrd for ClientFeature {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.name.partial_cmp(&other.name)
+        Some(self.cmp(other))
     }
 }
 
@@ -481,7 +477,7 @@ mod tests {
 
     #[derive(Debug)]
     pub enum EdgeError {
-        SomethingWentWrong(String),
+        SomethingWentWrong,
     }
     #[test]
     pub fn ordering_is_stable_for_constraints() {
@@ -516,7 +512,7 @@ mod tests {
 
     fn read_file(path: PathBuf) -> Result<BufReader<File>, EdgeError> {
         File::open(path)
-            .map_err(|e| EdgeError::SomethingWentWrong(e.to_string()))
+            .map_err(|_| EdgeError::SomethingWentWrong)
             .map(BufReader::new)
     }
 
@@ -657,26 +653,33 @@ mod tests {
     pub fn when_strategy_variants_is_none_default_to_empty_vec() {
         let client_features = ClientFeatures {
             version: 2,
-            features: vec![
-                ClientFeature {
-                    name: "feature1".into(),
-                    strategies: Some(vec![Strategy {
-                        name: "default".into(),
-                        sort_order: Some(124),
-                        segments: None,
-                        constraints: None,
-                        parameters: None,
-                        variants: None
-                    }]),
-                    ..ClientFeature::default()
-                },
-            ],
+            features: vec![ClientFeature {
+                name: "feature1".into(),
+                strategies: Some(vec![Strategy {
+                    name: "default".into(),
+                    sort_order: Some(124),
+                    segments: None,
+                    constraints: None,
+                    parameters: None,
+                    variants: None,
+                }]),
+                ..ClientFeature::default()
+            }],
             segments: None,
             query: None,
         };
         let client_features_json = serde_json::to_string(&client_features).unwrap();
-        let client_features_parsed: ClientFeatures = serde_json::from_str(&client_features_json).unwrap();
-        let strategy = client_features_parsed.features.first().unwrap().strategies.as_ref().unwrap().first().unwrap();
+        let client_features_parsed: ClientFeatures =
+            serde_json::from_str(&client_features_json).unwrap();
+        let strategy = client_features_parsed
+            .features
+            .first()
+            .unwrap()
+            .strategies
+            .as_ref()
+            .unwrap()
+            .first()
+            .unwrap();
         assert_eq!(strategy.variants.as_ref().unwrap().len(), 0);
     }
 

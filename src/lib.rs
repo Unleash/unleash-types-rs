@@ -139,7 +139,7 @@ mod tests {
 
         let result = first
             .into_iter()
-            .chain(second.into_iter())
+            .chain(second)
             .collect::<Vec<u32>>()
             .deduplicate();
         assert!(result.len() == 5);

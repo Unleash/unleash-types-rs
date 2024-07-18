@@ -155,7 +155,7 @@ impl ClientApplication {
             .strategies
             .clone()
             .into_iter()
-            .chain(strategies.into_iter())
+            .chain(strategies)
             .collect::<HashSet<String>>()
             .into_iter()
             .collect();
@@ -163,7 +163,7 @@ impl ClientApplication {
     }
 
     pub fn connect_via(&self, app_name: &str, instance_id: &str) -> ClientApplication {
-        let mut connect_via = self.connect_via.clone().unwrap_or(vec![]);
+        let mut connect_via = self.connect_via.clone().unwrap_or_default();
         connect_via.push(ConnectVia {
             app_name: app_name.into(),
             instance_id: instance_id.into(),
@@ -182,7 +182,7 @@ impl Merge for ClientApplication {
         let mut merged_strategies: Vec<String> = self
             .strategies
             .into_iter()
-            .chain(other.strategies.into_iter())
+            .chain(other.strategies)
             .collect::<HashSet<String>>()
             .into_iter()
             .collect();
@@ -191,7 +191,7 @@ impl Merge for ClientApplication {
             .connect_via
             .map(|c| {
                 let initial = c.into_iter();
-                let other_iter = other.connect_via.clone().unwrap_or(vec![]).into_iter();
+                let other_iter = other.connect_via.clone().unwrap_or_default().into_iter();
                 let connect_via: Vec<ConnectVia> = initial.chain(other_iter).collect();
                 connect_via
             })
