@@ -481,7 +481,7 @@ mod tests {
 
     #[derive(Debug)]
     pub enum EdgeError {
-        SomethingWentWrong(String),
+        SomethingWentWrong,
     }
     #[test]
     pub fn ordering_is_stable_for_constraints() {
@@ -516,7 +516,7 @@ mod tests {
 
     fn read_file(path: PathBuf) -> Result<BufReader<File>, EdgeError> {
         File::open(path)
-            .map_err(|e| EdgeError::SomethingWentWrong(e.to_string()))
+            .map_err(|_| EdgeError::SomethingWentWrong)
             .map(BufReader::new)
     }
 
@@ -657,26 +657,33 @@ mod tests {
     pub fn when_strategy_variants_is_none_default_to_empty_vec() {
         let client_features = ClientFeatures {
             version: 2,
-            features: vec![
-                ClientFeature {
-                    name: "feature1".into(),
-                    strategies: Some(vec![Strategy {
-                        name: "default".into(),
-                        sort_order: Some(124),
-                        segments: None,
-                        constraints: None,
-                        parameters: None,
-                        variants: None
-                    }]),
-                    ..ClientFeature::default()
-                },
-            ],
+            features: vec![ClientFeature {
+                name: "feature1".into(),
+                strategies: Some(vec![Strategy {
+                    name: "default".into(),
+                    sort_order: Some(124),
+                    segments: None,
+                    constraints: None,
+                    parameters: None,
+                    variants: None,
+                }]),
+                ..ClientFeature::default()
+            }],
             segments: None,
             query: None,
         };
         let client_features_json = serde_json::to_string(&client_features).unwrap();
-        let client_features_parsed: ClientFeatures = serde_json::from_str(&client_features_json).unwrap();
-        let strategy = client_features_parsed.features.first().unwrap().strategies.as_ref().unwrap().first().unwrap();
+        let client_features_parsed: ClientFeatures =
+            serde_json::from_str(&client_features_json).unwrap();
+        let strategy = client_features_parsed
+            .features
+            .first()
+            .unwrap()
+            .strategies
+            .as_ref()
+            .unwrap()
+            .first()
+            .unwrap();
         assert_eq!(strategy.variants.as_ref().unwrap().len(), 0);
     }
 
