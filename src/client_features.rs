@@ -231,11 +231,7 @@ impl PartialEq for Strategy {
 }
 impl PartialOrd for Strategy {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.sort_order.partial_cmp(&other.sort_order) {
-            Some(core::cmp::Ordering::Equal) => self.name.partial_cmp(&other.name),
-            Some(s) => Some(s),
-            None => self.name.partial_cmp(&other.name),
-        }
+        Some(self.cmp(other))
     }
 }
 impl Ord for Strategy {
@@ -292,7 +288,7 @@ pub struct StrategyVariant {
 
 impl PartialOrd for Variant {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.name.partial_cmp(&other.name)
+        Some(self.cmp(other))
     }
 }
 impl Ord for Variant {
@@ -317,7 +313,7 @@ impl PartialEq for Segment {
 
 impl PartialOrd for Segment {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.id.partial_cmp(&other.id)
+        Some(self.cmp(other))
     }
 }
 
@@ -424,7 +420,7 @@ impl Upsert for ClientFeatures {
 
 impl PartialOrd for ClientFeature {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.name.partial_cmp(&other.name)
+        Some(self.cmp(other))
     }
 }
 
