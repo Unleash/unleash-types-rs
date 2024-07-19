@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.13.0 (2024-07-19)
+
+### Chore
+
+ - <csr-id-06b3b3d384ca432c3250b3d210caa2a58e69dc25/> chrono security bump
+ - <csr-id-29a3068af3f3569f9717a4627388989dab9d9b6a/> change tests so that we can add fields to clientapplication without a lot of noise
+ - <csr-id-12fc7c01a46d937a4882ae63b1f8c5e9688f2acb/> clippy/cargo linting cleanups
+
+### New Features
+
+ - <csr-id-993866059d3b5ca5733821768f86c2904e90b672/> extend metrics and registration with optional metadata
+
+### Bug Fixes
+
+ - <csr-id-4f8ed4928db21f772fac51d9dbe46363a2e70a4c/> re-add snake-case of impression_data
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 5 commits contributed to the release.
+ - 84 days passed between releases.
+ - 5 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 4 unique issues were worked on: [#38](https://github.com/Unleash/unleash-types-rs/issues/38), [#39](https://github.com/Unleash/unleash-types-rs/issues/39), [#40](https://github.com/Unleash/unleash-types-rs/issues/40), [#41](https://github.com/Unleash/unleash-types-rs/issues/41)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#38](https://github.com/Unleash/unleash-types-rs/issues/38)**
+    - Clippy/cargo linting cleanups ([`12fc7c0`](https://github.com/Unleash/unleash-types-rs/commit/12fc7c01a46d937a4882ae63b1f8c5e9688f2acb))
+ * **[#39](https://github.com/Unleash/unleash-types-rs/issues/39)**
+    - Change tests so that we can add fields to clientapplication without a lot of noise ([`29a3068`](https://github.com/Unleash/unleash-types-rs/commit/29a3068af3f3569f9717a4627388989dab9d9b6a))
+ * **[#40](https://github.com/Unleash/unleash-types-rs/issues/40)**
+    - Extend metrics and registration with optional metadata ([`9938660`](https://github.com/Unleash/unleash-types-rs/commit/993866059d3b5ca5733821768f86c2904e90b672))
+ * **[#41](https://github.com/Unleash/unleash-types-rs/issues/41)**
+    - Re-add snake-case of impression_data ([`4f8ed49`](https://github.com/Unleash/unleash-types-rs/commit/4f8ed4928db21f772fac51d9dbe46363a2e70a4c))
+ * **Uncategorized**
+    - Chrono security bump ([`06b3b3d`](https://github.com/Unleash/unleash-types-rs/commit/06b3b3d384ca432c3250b3d210caa2a58e69dc25))
+</details>
+
 ## v0.12.0 (2024-04-25)
 
 ### Bug Fixes
@@ -15,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 92 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#36](https://github.com/Unleash/unleash-types-rs/issues/36)
@@ -28,6 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#36](https://github.com/Unleash/unleash-types-rs/issues/36)**
     - Convert frontend responses to camel case ([`1717a61`](https://github.com/Unleash/unleash-types-rs/commit/1717a61b1eb7c29f6a902e30c921f29dca3bc95b))
+ * **Uncategorized**
+    - Release unleash-types v0.12.0 ([`ed9ad91`](https://github.com/Unleash/unleash-types-rs/commit/ed9ad9125d2866be33b2a88561851cdd5db35bb0))
 </details>
 
 ## v0.11.0 (2024-01-23)
