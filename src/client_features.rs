@@ -13,7 +13,7 @@ use xxhash_rust::xxh3::xxh3_128;
 
 use crate::{Deduplicate, Merge, Upsert};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
