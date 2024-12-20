@@ -398,7 +398,7 @@ impl Merge for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
-            meta: other.meta,
+            meta: other.meta.or(self.meta),
         }
     }
 }
@@ -424,7 +424,7 @@ impl Upsert for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
-            meta: other.meta,
+            meta: other.meta.or(self.meta),
         }
     }
 }
