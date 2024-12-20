@@ -368,6 +368,13 @@ pub struct ClientFeature {
     pub dependencies: Option<Vec<FeatureDependency>>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct Meta {
+    pub etag: Option<String>,
+}
+
 impl Merge for ClientFeatures {
     fn merge(self, other: Self) -> Self {
         let mut features = self.features.merge(other.features);
@@ -389,6 +396,7 @@ impl Merge for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
+            meta: other.meta,
         }
     }
 }
@@ -414,6 +422,7 @@ impl Upsert for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
+            meta: other.meta,
         }
     }
 }
@@ -450,6 +459,8 @@ pub struct ClientFeatures {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<Meta>,
 }
 
 #[cfg(feature = "hashes")]
