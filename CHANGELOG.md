@@ -5,7 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.15.0 (2025-01-03)
+
+### New Features
+
+ - <csr-id-aaf14c8076bee3a2d8c95f6611c8271a8d1d7a8b/> derives the hash impl for query
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release over the course of 2 calendar days.
+ - 55 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 2 unique issues were worked on: [#33](https://github.com/Unleash/unleash-types-rs/issues/33), [#43](https://github.com/Unleash/unleash-types-rs/issues/43)
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **[#33](https://github.com/Unleash/unleash-types-rs/issues/33)**
+    - Clippy --fix ([`29754d5`](https://github.com/Unleash/unleash-types-rs/commit/29754d574e1e6207714278106aeb390263758a70))
+ * **[#43](https://github.com/Unleash/unleash-types-rs/issues/43)**
+    - Derives the hash impl for query ([`aaf14c8`](https://github.com/Unleash/unleash-types-rs/commit/aaf14c8076bee3a2d8c95f6611c8271a8d1d7a8b))
+</details>
+
 ## v0.14.0 (2024-10-18)
+
+<csr-id-ffd8650c4af5bb81de537441e656ccfed05e54e1/>
 
 ### Chore
 
@@ -15,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 91 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#42](https://github.com/Unleash/unleash-types-rs/issues/42)
@@ -28,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  * **[#42](https://github.com/Unleash/unleash-types-rs/issues/42)**
     - Dependency maintenance ([`ffd8650`](https://github.com/Unleash/unleash-types-rs/commit/ffd8650c4af5bb81de537441e656ccfed05e54e1))
+ * **Uncategorized**
+    - Release unleash-types v0.14.0 ([`44a2b81`](https://github.com/Unleash/unleash-types-rs/commit/44a2b81cda950adf84b3da3be6d9be40484e7da1))
 </details>
 
 ## v0.13.0 (2024-07-19)
@@ -89,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
- - 93 days passed between releases.
+ - 92 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#36](https://github.com/Unleash/unleash-types-rs/issues/36)
 
@@ -437,7 +468,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 3 commits contributed to the release.
+ - 3 commits contributed to the release over the course of 6 calendar days.
  - 6 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -470,7 +501,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 3 commits contributed to the release.
+ - 3 commits contributed to the release over the course of 16 calendar days.
  - 16 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 2 unique issues were worked on: [#23](https://github.com/Unleash/unleash-types-rs/issues/23), [#24](https://github.com/Unleash/unleash-types-rs/issues/24)
@@ -505,7 +536,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 4 commits contributed to the release.
+ - 4 commits contributed to the release over the course of 2 calendar days.
  - 3 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 1 unique issue was worked on: [#21](https://github.com/Unleash/unleash-types-rs/issues/21)
@@ -544,7 +575,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 5 commits contributed to the release.
+ - 5 commits contributed to the release over the course of 1 calendar day.
  - 2 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 4 unique issues were worked on: [#17](https://github.com/Unleash/unleash-types-rs/issues/17), [#18](https://github.com/Unleash/unleash-types-rs/issues/18), [#19](https://github.com/Unleash/unleash-types-rs/issues/19), [#20](https://github.com/Unleash/unleash-types-rs/issues/20)
@@ -786,7 +817,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 10 commits contributed to the release.
+ - 10 commits contributed to the release over the course of 1 calendar day.
  - 1 day passed between releases.
  - 8 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 5 unique issues were worked on: [#5](https://github.com/Unleash/unleash-types-rs/issues/5), [#6](https://github.com/Unleash/unleash-types-rs/issues/6), [#7](https://github.com/Unleash/unleash-types-rs/issues/7), [#8](https://github.com/Unleash/unleash-types-rs/issues/8), [#9](https://github.com/Unleash/unleash-types-rs/issues/9)
@@ -850,7 +881,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 9 commits contributed to the release.
+ - 9 commits contributed to the release over the course of 2 calendar days.
  - 28 days passed between releases.
  - 7 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 3 unique issues were worked on: [#1](https://github.com/Unleash/unleash-types-rs/issues/1), [#2](https://github.com/Unleash/unleash-types-rs/issues/2), [#4](https://github.com/Unleash/unleash-types-rs/issues/4)
