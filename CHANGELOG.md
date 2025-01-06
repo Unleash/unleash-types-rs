@@ -2,17 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
-
-### 💼 Other
-
-- Release plz workflow ([#45](https://github.com/unleash/unleash-types-rs/issues/45)) by @chriswk in #45
-
-- Migrate to git cliff for our changelog
-
-- Added username and pr numbers (if available) to changelog
-
-
 ## [0.15.0] - 2025-01-03
 
 ### 🚀 Features
