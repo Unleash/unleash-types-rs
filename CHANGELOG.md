@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.1](https://github.com/Unleash/unleash-types-rs/compare/v0.15.0...v0.15.1) - 2025-01-06
+
+### 🚀 Features
+- added meta field to ClientFeatures (#44) (by @chriswk) - #44
+
+### 💼 Other
+- migrate to git cliff for our changelog (#54) (by @chriswk) - #54
+- Release plz workflow ([#45](https://github.com/Unleash/unleash-types-rs/pull/45)) (by @chriswk) - #45
+
+### Dependency updates
+- *(deps)* bump serde from 1.0.210 to 1.0.217 (#52) (by @dependabot[bot])
+- *(deps)* bump actions/checkout from 3 to 4 (#49) (by @dependabot[bot])
+- *(deps)* bump serde_json from 1.0.128 to 1.0.134 (#51) (by @dependabot[bot])
+- *(deps)* bump github/codeql-action from 2 to 3 (#48) (by @dependabot[bot])
+- *(deps)* bump xxhash-rust from 0.8.12 to 0.8.15 (#47) (by @dependabot[bot])
+- *(deps)* bump chrono from 0.4.38 to 0.4.39 (#53) (by @dependabot[bot])
+
+### ⚙️ Miscellaneous Tasks
+- added build(deps) as a dependency update group parser (by @chriswk)
+- Trust [changelog] section (by @chriswk)
+- Add dep-update prefix for dependabot upgrades (#55) (by @chriswk) - #55
+
+### Contributors
+
+* @chriswk
+* @dependabot[bot]
+
 ## [0.15.0] - 2025-01-03
 
 ### 🚀 Features
