@@ -1,40 +1,30 @@
 ---
-name: Release
+name: Continuous Deployment
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: Bump patch/minor/major
-        default: "patch"
-        type: "string"
+  push:
+    branches:
+      - main
 
 jobs:
-  release:
+  release-plz:
+    name: Release-plz
     runs-on: ubuntu-latest
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_PUBLISH_KEY }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install rust
-        run: |
-          rustup set auto-self-update disable
-          rustup toolchain install stable --profile minimal
-          rustup show
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-      - name: Install required cargo packages for creating release
-        run: |
-          cargo install cargo-smart-release
-      - name: Run cargo release process
-        run: |
-          cargo smart-release --allow-fully-generated-changelogs --no-changelog-preview -u -b ${{ github.event.inputs.bump }} --execute
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
