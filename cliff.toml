@@ -24,7 +24,9 @@ body = """
     {% for commit in commits %}
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
+            {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+            {% if commit.remote.username %} by @{{ commit.remote.username }}{%- endif %}\
+            {% if commit.remote.pr_number %} in #{{ commit.remote.pr_number }}{%- endif %}
     {% endfor %}
 {% endfor %}\n
 """
