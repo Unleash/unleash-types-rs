@@ -368,6 +368,15 @@ pub struct ClientFeature {
     pub dependencies: Option<Vec<FeatureDependency>>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct Meta {
+    pub etag: Option<String>,
+    pub revision_id: Option<usize>,
+    pub query_hash: Option<String>,
+}
+
 impl Merge for ClientFeatures {
     fn merge(self, other: Self) -> Self {
         let mut features = self.features.merge(other.features);
@@ -389,6 +398,7 @@ impl Merge for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
+            meta: other.meta.or(self.meta),
         }
     }
 }
@@ -414,6 +424,7 @@ impl Upsert for ClientFeatures {
                 s
             }),
             query: self.query.or(other.query),
+            meta: other.meta.or(self.meta),
         }
     }
 }
@@ -450,6 +461,8 @@ pub struct ClientFeatures {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub segments: Option<Vec<Segment>>,
     pub query: Option<Query>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<Meta>,
 }
 
 #[cfg(feature = "hashes")]
@@ -562,6 +575,7 @@ mod tests {
             ],
             segments: None,
             query: None,
+            meta: None,
         };
 
         let client_features_two = ClientFeatures {
@@ -572,6 +586,7 @@ mod tests {
             }],
             segments: None,
             query: None,
+            meta: None,
         };
 
         let merged = client_features_one.merge(client_features_two);
@@ -594,6 +609,7 @@ mod tests {
             ],
             segments: None,
             query: None,
+            meta: None,
         };
         let mut updated_strategies = client_features_one.clone();
         let updated_feature_one_with_strategy = ClientFeature {
@@ -667,6 +683,7 @@ mod tests {
             }],
             segments: None,
             query: None,
+            meta: None,
         };
         let client_features_json = serde_json::to_string(&client_features).unwrap();
         let client_features_parsed: ClientFeatures =
@@ -714,6 +731,7 @@ mod tests {
                 },
             ]),
             query: None,
+            meta: None,
         };
         let client_features_two = ClientFeatures {
             version: 2,
@@ -743,6 +761,7 @@ mod tests {
                 },
             ]),
             query: None,
+            meta: None,
         };
 
         let expected = vec![
@@ -784,5 +803,32 @@ mod tests {
         new_constraints.sort_by(|a, b| a.context_name.cmp(&b.context_name));
 
         assert_eq!(new_constraints, expected);
+    }
+
+    #[test]
+    pub fn when_meta_is_in_client_features_it_is_serialized() {
+        let client_features = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: None,
+            query: None,
+            meta: Some(super::Meta {
+                etag: Some("123:wqeqwe".into()),
+                revision_id: Some(123),
+                query_hash: Some("wqeqwe".into()),
+            }),
+        };
+        let serialized = serde_json::to_string(&client_features).unwrap();
+        assert!(serialized.contains("meta"));
+    }
+
+    #[test_case("./examples/nuno-response.json".into() ; "features with meta tag")]
+    pub fn can_parse_meta_from_upstream(path: PathBuf) {
+        let features: ClientFeatures = serde_json::from_reader(read_file(path).unwrap()).unwrap();
+        assert!(features.meta.is_some());
+        let meta = features.meta.unwrap();
+        assert_eq!(meta.etag, Some("\"537b2ba0:3726\"".into()));
+        assert_eq!(meta.revision_id, Some(3726));
+        assert_eq!(meta.query_hash, Some("537b2ba0".into()));
     }
 }
