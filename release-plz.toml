@@ -28,7 +28,7 @@ commit_parsers = [
     { message = "^style", group = "<!-- 5 -->🎨 Styling" },
     { message = "^test", group = "<!-- 6 -->🧪 Testing" },
     { message = "^dep-update", group = "<!-- 11 --> Dependency updates" },
-    { message = "^build(deps)", group = "<!-- 11 --> Dependency updates" },
+    { message = "^build\\(deps\\)", group = "<!-- 11 --> Dependency updates" },
     { message = "^chore\\(release\\): prepare for", skip = true },
     { message = "^chore\\(deps.*\\)", skip = true },
     { message = "^chore\\(pr\\)", skip = true },
@@ -75,7 +75,7 @@ body = """
     {% endif %} \
     - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
-### {{ group | upper_first }}
+### {{ group | striptags | trim | upper_first }}
     {% for commit in commits %}
         {%- if commit.scope -%}
             - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
