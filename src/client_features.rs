@@ -477,6 +477,15 @@ impl ClientFeatures {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ClientFeaturesDelta {
+    pub updated: Vec<ClientFeature>,
+    pub revision_id: u64,
+    pub removed: Vec<String>,
+    pub segments: Option<Vec<Segment>>,
+}
+
 #[cfg(test)]
 mod tests {
     use serde_qs::Config;
