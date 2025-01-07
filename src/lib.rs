@@ -1,5 +1,4 @@
 pub mod client_features;
-pub mod client_features_delta;
 pub mod client_metrics;
 pub mod frontend;
 use std::{collections::HashSet, hash::Hash};
