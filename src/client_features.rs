@@ -492,12 +492,42 @@ pub struct ClientFeaturesDelta {
     pub segments: Option<Vec<Segment>>,
 }
 
+impl ClientFeatures {
+    /// Modifies the current ClientFeatures instance by applying the delta.
+    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
+        let mut features = self.features.clone();
+        features.retain(|f| !delta.removed.contains(&f.name));
+        self.features = features.merge(delta.updated.clone());
+        self.features.sort();
+        self.segments = delta.segments.clone();
+    }
+
+    /// Returns a new ClientFeatures instance with the delta applied.
+    pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
+        let mut features = self.features.clone();
+        features.retain(|f| !delta.removed.contains(&f.name));
+        let mut updated_features = features.merge(delta.updated.clone());
+        updated_features.sort();
+        let segments = delta.segments.clone();
+        ClientFeatures {
+            version: self.version,
+            features: updated_features,
+            segments,
+            query: self.query.clone(),
+            meta: self.meta.clone(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use serde_qs::Config;
     use std::{fs::File, io::BufReader, path::PathBuf};
 
-    use crate::{client_features::ClientFeature, Merge, Upsert};
+    use crate::{
+        client_features::{ClientFeature, ClientFeaturesDelta},
+        Merge, Upsert,
+    };
 
     use super::{ClientFeatures, Constraint, Operator, Segment, Strategy};
     use crate::client_features::Context;
@@ -678,6 +708,44 @@ mod tests {
         assert!(prop_map.contains_key("companyId"));
         assert!(prop_map.contains_key("hello"));
         assert!(prop_map.contains_key("email"));
+    }
+
+    #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
+    pub fn can_take_delta_updates(base: PathBuf, delta: PathBuf) {
+        let base_delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(base).unwrap()).unwrap();
+        let mut features = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: None,
+            query: None,
+            meta: None,
+        };
+        features.modify_in_place(&base_delta);
+        assert_eq!(features.features.len(), 3);
+        let delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(delta).unwrap()).unwrap();
+        features.modify_in_place(&delta);
+        assert_eq!(features.features.len(), 2);
+    }
+
+    #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
+    pub fn can_apply_delta_updates(base: PathBuf, delta: PathBuf) {
+        let base_delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(base).unwrap()).unwrap();
+        let features = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: None,
+            query: None,
+            meta: None,
+        };
+        let changed = features.modify_and_copy(&base_delta);
+        assert_eq!(changed.features.len(), 3);
+        let delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(delta).unwrap()).unwrap();
+        let second_change = changed.modify_and_copy(&delta);
+        assert_eq!(second_change.features.len(), 2);
     }
 
     #[test]

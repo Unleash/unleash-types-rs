@@ -131,6 +131,7 @@ pub struct ConnectVia {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct ClientApplication {
     pub app_name: String,
     pub connect_via: Option<Vec<ConnectVia>>,
@@ -146,6 +147,7 @@ pub struct ClientApplication {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct MetricsMetadata {
     pub sdk_version: Option<String>,
     pub yggdrasil_version: Option<String>,
@@ -249,31 +251,9 @@ mod tests {
 
     use super::*;
 
-    impl Default for ClientApplication {
-        fn default() -> Self {
-            Self {
-                app_name: Default::default(),
-                connect_via: Default::default(),
-                environment: Default::default(),
-                instance_id: Default::default(),
-                interval: Default::default(),
-                started: Default::default(),
-                strategies: Default::default(),
-                metadata: Default::default(),
-            }
-        }
-    }
+    
 
-    impl Default for MetricsMetadata {
-        fn default() -> Self {
-            Self {
-                sdk_version: Default::default(),
-                yggdrasil_version: Default::default(),
-                platform_name: Default::default(),
-                platform_version: Default::default(),
-            }
-        }
-    }
+    
 
     #[test]
     pub fn can_increment_counts() {
