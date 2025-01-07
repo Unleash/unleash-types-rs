@@ -477,6 +477,7 @@ impl ClientFeatures {
     }
 }
 
+/// Schema for delta updates of feature configurations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
