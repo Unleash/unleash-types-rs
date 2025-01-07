@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.3](https://github.com/Unleash/unleash-types-rs/compare/v0.15.2...v0.15.3) - 2025-01-07
+
+### 🚀 Features
+- allow ClientFeatures to apply deltas to itself (#59) (by @chriswk) - #59
+
+### Contributors
+
+* @chriswk
+
 ## [0.15.2](https://github.com/Unleash/unleash-types-rs/compare/v0.15.1...v0.15.2) - 2025-01-07
 
 ### 🚀 Features
