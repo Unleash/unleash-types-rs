@@ -477,6 +477,21 @@ impl ClientFeatures {
     }
 }
 
+/// Schema for delta updates of feature configurations.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "openapi", derive(ToSchema))]
+pub struct ClientFeaturesDelta {
+    /// A list of updated feature configurations.
+    pub updated: Vec<ClientFeature>,
+    /// The revision ID of the delta update.
+    pub revision_id: u64,
+    /// A list of feature names that were removed.
+    pub removed: Vec<String>,
+    /// A list of [Segments](https://docs.getunleash.io/reference/segments) configured for this Unleash instance
+    pub segments: Option<Vec<Segment>>,
+}
+
 #[cfg(test)]
 mod tests {
     use serde_qs::Config;
