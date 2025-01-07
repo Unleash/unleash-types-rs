@@ -493,12 +493,28 @@ pub struct ClientFeaturesDelta {
 }
 
 impl ClientFeatures {
+    /// Modifies the current ClientFeatures instance by applying the delta.
     pub fn take_delta(&mut self, delta: &ClientFeaturesDelta) {
         let mut features = self.features.clone();
         features.retain(|f| !delta.removed.contains(&f.name));
         self.features = features.merge(delta.updated.clone());
         self.features.sort();
         self.segments = delta.segments.clone();
+    }
+
+    /// Returns a new ClientFeatures instance with the delta applied.
+    pub fn apply_delta(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
+        let mut features = self.features.clone();
+        features.retain(|f| !delta.removed.contains(&f.name));
+        let features = features.merge(delta.updated.clone());
+        let segments = delta.segments.clone();
+        ClientFeatures {
+            version: self.version,
+            features,
+            segments,
+            query: self.query.clone(),
+            meta: self.meta.clone(),
+        }
     }
 }
 
@@ -710,6 +726,25 @@ mod tests {
             serde_json::from_reader(read_file(delta).unwrap()).unwrap();
         features.take_delta(&delta);
         assert_eq!(features.features.len(), 2);
+    }
+
+    #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
+    pub fn can_apply_delta_updates(base: PathBuf, delta: PathBuf) {
+        let base_delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(base).unwrap()).unwrap();
+        let features = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: None,
+            query: None,
+            meta: None,
+        };
+        let changed = features.apply_delta(&base_delta);
+        assert_eq!(changed.features.len(), 3);
+        let delta: ClientFeaturesDelta =
+            serde_json::from_reader(read_file(delta).unwrap()).unwrap();
+        let second_change = changed.apply_delta(&delta);
+        assert_eq!(second_change.features.len(), 2);
     }
 
     #[test]
