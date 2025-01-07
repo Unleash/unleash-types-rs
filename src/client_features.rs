@@ -494,7 +494,7 @@ pub struct ClientFeaturesDelta {
 
 impl ClientFeatures {
     /// Modifies the current ClientFeatures instance by applying the delta.
-    pub fn take_delta(&mut self, delta: &ClientFeaturesDelta) {
+    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
         let mut features = self.features.clone();
         features.retain(|f| !delta.removed.contains(&f.name));
         self.features = features.merge(delta.updated.clone());
@@ -503,7 +503,7 @@ impl ClientFeatures {
     }
 
     /// Returns a new ClientFeatures instance with the delta applied.
-    pub fn apply_delta(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
+    pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
         let mut features = self.features.clone();
         features.retain(|f| !delta.removed.contains(&f.name));
         let mut updated_features = features.merge(delta.updated.clone());
@@ -721,11 +721,11 @@ mod tests {
             query: None,
             meta: None,
         };
-        features.take_delta(&base_delta);
+        features.modify_in_place(&base_delta);
         assert_eq!(features.features.len(), 3);
         let delta: ClientFeaturesDelta =
             serde_json::from_reader(read_file(delta).unwrap()).unwrap();
-        features.take_delta(&delta);
+        features.modify_in_place(&delta);
         assert_eq!(features.features.len(), 2);
     }
 
@@ -740,11 +740,11 @@ mod tests {
             query: None,
             meta: None,
         };
-        let changed = features.apply_delta(&base_delta);
+        let changed = features.modify_and_copy(&base_delta);
         assert_eq!(changed.features.len(), 3);
         let delta: ClientFeaturesDelta =
             serde_json::from_reader(read_file(delta).unwrap()).unwrap();
-        let second_change = changed.apply_delta(&delta);
+        let second_change = changed.modify_and_copy(&delta);
         assert_eq!(second_change.features.len(), 2);
     }
 
