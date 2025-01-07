@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.2](https://github.com/Unleash/unleash-types-rs/compare/v0.15.1...v0.15.2) - 2025-01-07
+
+### 🚀 Features
+- client features delta schema (#57) (by @chriswk) - #57
+
+### Contributors
+
+* @chriswk
+
 ## [0.15.1](https://github.com/Unleash/unleash-types-rs/compare/v0.15.0...v0.15.1) - 2025-01-06
 
 ### 🚀 Features
