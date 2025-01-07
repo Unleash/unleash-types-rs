@@ -506,11 +506,12 @@ impl ClientFeatures {
     pub fn apply_delta(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
         let mut features = self.features.clone();
         features.retain(|f| !delta.removed.contains(&f.name));
-        let features = features.merge(delta.updated.clone());
+        let mut updated_features = features.merge(delta.updated.clone());
+        updated_features.sort();
         let segments = delta.segments.clone();
         ClientFeatures {
             version: self.version,
-            features,
+            features: updated_features,
             segments,
             query: self.query.clone(),
             meta: self.meta.clone(),
