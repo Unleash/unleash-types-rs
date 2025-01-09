@@ -519,6 +519,30 @@ impl ClientFeatures {
     }
 }
 
+impl Default for ClientFeatures {
+    fn default() -> Self {
+        Self {
+            version: 2,
+            features: vec![],
+            segments: None,
+            query: None,
+            meta: None,
+        }
+    }
+}
+
+impl From<ClientFeaturesDelta> for ClientFeatures {
+    fn from(value: ClientFeaturesDelta) -> Self {
+        ClientFeatures::default().modify_and_copy(&value)
+    }
+}
+
+impl From<&ClientFeaturesDelta> for ClientFeatures {
+    fn from(value: &ClientFeaturesDelta) -> Self {
+        ClientFeatures::default().modify_and_copy(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use serde_qs::Config;
