@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.4](https://github.com/Unleash/unleash-types-rs/compare/v0.15.3...v0.15.4) - 2025-01-14
+
+### 🚀 Features
+- added from ClientFeaturesDelta for ClientFeatures (#63) (by @chriswk) - #63
+
+### 🐛 Bug Fixes
+- apply delta not updating features (#64) (by @sjaanus) - #64
+- *(ci)* Use private key, not client token (by @chriswk)
+
+### ⚙️ Miscellaneous Tasks
+- *(ci)* Updated to use unleash-bot (#61) (by @chriswk)
+
+### Contributors
+
+* @sjaanus
+* @chriswk
+
 ## [0.15.3](https://github.com/Unleash/unleash-types-rs/compare/v0.15.2...v0.15.3) - 2025-01-07
 
 ### 🚀 Features
