@@ -44,26 +44,11 @@ where
 
 impl<T> Merge for Vec<T>
 where
-    T: Hash + Eq + Clone,
+    T: Hash + Eq,
 {
-    fn merge(mut self, other: Self) -> Self {
-        use std::collections::HashMap;
-
-        let mut position_map: HashMap<T, usize> = self
-            .iter()
-            .enumerate()
-            .map(|(index, item)| (item.clone(), index))
-            .collect();
-
-        for item in other {
-            if let Some(&pos) = position_map.get(&item) {
-                self[pos] = item;
-            } else {
-                position_map.insert(item.clone(), self.len());
-                self.push(item);
-            }
-        }
-        self
+    fn merge(self, mut other: Self) -> Self {
+        other.extend(self);
+        other.deduplicate()
     }
 }
 
@@ -72,8 +57,10 @@ mod tests {
     use crate::{Deduplicate, Merge};
 
     use super::client_features::*;
-    use serde_json::json;
+    use serde_json::{json, to_string};
     use std::fs;
+    use std::hash::{Hash, Hasher};
+    use serde::Serialize;
     use test_case::test_case;
 
     #[test_case("01-simple-examples"; "can parse legacy format")]
@@ -177,5 +164,43 @@ mod tests {
         let result = first.merge(second);
 
         assert!(result.len() == 6);
+    }
+
+    #[test]
+    fn merge_tester() {
+        #[derive(Serialize, Debug, Eq)]
+        pub struct MergeTester {
+            pub name: String,
+            pub enabled: bool,
+        }
+        impl Hash for MergeTester {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                self.name.hash(state);
+            }
+        }
+        impl PartialEq for MergeTester {
+            fn eq(&self, other: &Self) -> bool {
+                self.name == other.name
+            }
+        }
+        let first = MergeTester{
+            name: "susan".to_string(),
+            enabled: false,
+        };
+        let second = MergeTester{
+            name: "susan".to_string(),
+            enabled: true,
+        };
+
+        let result = vec![first].merge(vec![second]);
+
+        let expected = vec![MergeTester{
+            name: "susan".to_string(),
+            enabled: true,
+        }];
+        let serialized_delta_updates = to_string(&result).unwrap();
+        let serialized_final_features = to_string(&expected).unwrap();
+
+        assert_eq!(serialized_delta_updates, serialized_final_features)
     }
 }
