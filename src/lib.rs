@@ -44,12 +44,19 @@ where
 
 impl<T> Merge for Vec<T>
 where
-    T: Hash + Eq,
+    T: Eq + Clone,
 {
     fn merge(self, other: Self) -> Self {
         let mut merged = self;
-        merged.extend(other);
-        merged.deduplicate()
+
+        for item in other {
+            if let Some(pos) = merged.iter().position(|existing| existing == &item) {
+                merged[pos] = item;
+            } else {
+                merged.push(item);
+            }
+        }
+        merged
     }
 }
 
