@@ -167,7 +167,7 @@ mod tests {
     }
 
     #[test]
-    fn merge_tester() {
+    fn merging_structs_with_hash_implementations_deduplicates_correctly() {
         #[derive(Serialize, Debug, Eq)]
         pub struct MergeTester {
             pub name: String,
