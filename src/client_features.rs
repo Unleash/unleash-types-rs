@@ -547,7 +547,7 @@ impl From<&ClientFeaturesDelta> for ClientFeatures {
 mod tests {
     use serde_qs::Config;
     use std::{fs::File, io::BufReader, path::PathBuf};
-
+    use serde_json::{from_reader, to_string};
     use crate::{
         client_features::{ClientFeature, ClientFeaturesDelta},
         Merge, Upsert,
@@ -754,22 +754,31 @@ mod tests {
     }
 
     #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
-    pub fn can_apply_delta_updates(base: PathBuf, delta: PathBuf) {
+    pub fn validate_delta_updates(base_path: PathBuf, delta_path: PathBuf) {
         let base_delta: ClientFeaturesDelta =
-            serde_json::from_reader(read_file(base).unwrap()).unwrap();
-        let features = ClientFeatures {
+            from_reader(read_file(base_path).unwrap()).unwrap();
+
+        let initial_features = ClientFeatures {
             version: 2,
             features: vec![],
             segments: None,
             query: None,
             meta: None,
         };
-        let changed = features.modify_and_copy(&base_delta);
-        assert_eq!(changed.features.len(), 3);
-        let delta: ClientFeaturesDelta =
-            serde_json::from_reader(read_file(delta).unwrap()).unwrap();
-        let second_change = changed.modify_and_copy(&delta);
-        assert_eq!(second_change.features.len(), 2);
+
+        let updated_features = initial_features.modify_and_copy(&base_delta);
+        assert_eq!(updated_features.features.len(), 3);
+
+        let delta_update: ClientFeaturesDelta =
+            from_reader(read_file(delta_path).unwrap()).unwrap();
+        let final_features = updated_features.modify_and_copy(&delta_update);
+        let mut sorted_delta_updates = delta_update.updated.clone();
+        sorted_delta_updates.sort();
+
+        let serialized_delta_updates = to_string(&sorted_delta_updates).unwrap();
+        let serialized_final_features = to_string(&final_features.features).unwrap();
+
+        assert_eq!(serialized_delta_updates, serialized_final_features);
     }
 
     #[test]
