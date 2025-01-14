@@ -44,7 +44,7 @@ where
 
 impl<T> Merge for Vec<T>
 where
-    T: Eq + Clone,
+    T: Hash + Eq,
 {
     fn merge(self, other: Self) -> Self {
         let mut merged = self;
