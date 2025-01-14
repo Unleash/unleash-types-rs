@@ -44,19 +44,26 @@ where
 
 impl<T> Merge for Vec<T>
 where
-    T: Hash + Eq,
+    T: Hash + Eq + Clone,
 {
-    fn merge(self, other: Self) -> Self {
-        let mut merged = self;
+    fn merge(mut self, other: Self) -> Self {
+        use std::collections::HashMap;
+
+        let mut position_map: HashMap<T, usize> = self
+            .iter()
+            .enumerate()
+            .map(|(index, item)| (item.clone(), index))
+            .collect();
 
         for item in other {
-            if let Some(pos) = merged.iter().position(|existing| existing == &item) {
-                merged[pos] = item;
+            if let Some(&pos) = position_map.get(&item) {
+                self[pos] = item;
             } else {
-                merged.push(item);
+                position_map.insert(item.clone(), self.len());
+                self.push(item);
             }
         }
-        merged
+        self
     }
 }
 
