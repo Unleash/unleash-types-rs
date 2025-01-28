@@ -876,7 +876,7 @@ mod tests {
         let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
         let final_features = updated_features.modify_and_copy(&delta_update);
 
-        let mut sorted_delta_features: Vec<_> = delta_update
+        let mut sorted_delta_features: Vec<ClientFeature> = delta_update
             .events
             .iter()
             .filter_map(|event| {
@@ -887,7 +887,7 @@ mod tests {
                 }
             })
             .collect();
-        sorted_delta_features.sort_by(|a, b| a.name.cmp(&b.name));
+        sorted_delta_features.sort();
 
         let serialized_delta_updates = to_string(&sorted_delta_features).unwrap();
         let serialized_final_features = to_string(&final_features.features).unwrap();
