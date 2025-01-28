@@ -876,7 +876,6 @@ mod tests {
         let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
         let final_features = updated_features.modify_and_copy(&delta_update);
 
-        // Extract and sort features from delta events for comparison
         let mut sorted_delta_features: Vec<_> = delta_update
             .events
             .iter()
