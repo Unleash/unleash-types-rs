@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.5](https://github.com/Unleash/unleash-types-rs/compare/v0.15.4...v0.15.5) - 2025-01-29
+
+### 🚀 Features
+- rework delta api to new schema (#66) (by @sjaanus) - #66
+
+### Contributors
+
+* @sjaanus
+
 ## [0.15.4](https://github.com/Unleash/unleash-types-rs/compare/v0.15.3...v0.15.4) - 2025-01-14
 
 ### 🚀 Features
