@@ -597,7 +597,7 @@ impl From<ClientFeaturesDelta> for ClientFeatures {
 
 impl From<&ClientFeaturesDelta> for ClientFeatures {
     fn from(value: &ClientFeaturesDelta) -> Self {
-        ClientFeatures::create_from_delta(&value)
+        ClientFeatures::create_from_delta(value)
     }
 }
 
