@@ -560,10 +560,12 @@ impl ClientFeatures {
         features.sort();
     }
 
+    /// Modifies the current ClientFeatures instance by applying the events.
     pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
         Self::apply_delta(&mut self.features, &mut self.segments, delta);
     }
 
+    /// Returns a new ClientFeatures instance with the events applied.
     pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
         let mut new_features = self.features.clone();
         let mut new_segments = self.segments.clone();
