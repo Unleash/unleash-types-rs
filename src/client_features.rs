@@ -524,88 +524,51 @@ pub struct ClientFeaturesDelta {
 }
 
 impl ClientFeatures {
-    /// Modifies the current ClientFeatures instance by applying the events.
-    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
+    fn apply_delta(features: &mut Vec<ClientFeature>, segments: &mut Option<Vec<Segment>>, delta: &ClientFeaturesDelta) {
         for event in &delta.events {
             match event {
-                DeltaEvent::FeatureUpdated { event_id: _, feature } => {
-                    if let Some(existing) = self.features.iter_mut().find(|f| f.name == feature.name) {
+                DeltaEvent::FeatureUpdated { feature, .. } => {
+                    if let Some(existing) = features.iter_mut().find(|f| f.name == feature.name) {
                         *existing = feature.clone();
                     } else {
-                        self.features.push(feature.clone());
+                        features.push(feature.clone());
                     }
                 }
-                DeltaEvent::FeatureRemoved { event_id: _, feature_name } => {
-                    self.features.retain(|f| f.name != *feature_name);
+                DeltaEvent::FeatureRemoved { feature_name, .. } => {
+                    features.retain(|f| f.name != *feature_name);
                 }
-                DeltaEvent::SegmentUpdated { event_id: _, segment } => {
-                    if self.segments.is_none() {
-                        self.segments = Some(Vec::new());
-                    }
-                    if let Some(segments) = &mut self.segments {
-                        if let Some(existing) = segments.iter_mut().find(|s| s.id == segment.id) {
-                            *existing = segment.clone();
-                        } else {
-                            segments.push(segment.clone());
-                        }
+                DeltaEvent::SegmentUpdated { segment, .. } => {
+                    let segments_list = segments.get_or_insert_with(Vec::new);
+                    if let Some(existing) = segments_list.iter_mut().find(|s| s.id == segment.id) {
+                        *existing = segment.clone();
+                    } else {
+                        segments_list.push(segment.clone());
                     }
                 }
-                DeltaEvent::SegmentRemoved { event_id: _, segment_id } => {
-                    if let Some(segments) = &mut self.segments {
-                        segments.retain(|s| s.id != *segment_id);
+                DeltaEvent::SegmentRemoved { segment_id, .. } => {
+                    if let Some(segments_list) = segments {
+                        segments_list.retain(|s| s.id != *segment_id);
                     }
                 }
-                DeltaEvent::Hydration { event_id: _, features, segments } => {
-                    self.features = features.clone();
-                    self.segments = Some(segments.clone());
+                DeltaEvent::Hydration { features: new_features, segments: new_segments, .. } => {
+                    *features = new_features.clone();
+                    *segments = Some(new_segments.clone());
                 }
             }
         }
 
-        self.features.sort();
+        features.sort();
     }
 
-    /// Returns a new ClientFeatures instance with the events applied.
+    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
+        Self::apply_delta(&mut self.features, &mut self.segments, delta);
+    }
+
     pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
         let mut new_features = self.features.clone();
         let mut new_segments = self.segments.clone();
 
-        for event in &delta.events {
-            match event {
-                DeltaEvent::FeatureUpdated { event_id: _, feature } => {
-                    if let Some(existing) = new_features.iter_mut().find(|f| f.name == feature.name) {
-                        *existing = feature.clone();
-                    } else {
-                        new_features.push(feature.clone());
-                    }
-                }
-                DeltaEvent::FeatureRemoved { event_id: _, feature_name } => {
-                    new_features.retain(|f| f.name != *feature_name);
-                }
-                DeltaEvent::SegmentUpdated { event_id: _, segment } => {
-                    if let Some(segments) = &mut new_segments {
-                        if let Some(existing) = segments.iter_mut().find(|seg| seg.id == segment.id) {
-                            *existing = segment.clone();
-                        } else {
-                            segments.push(segment.clone());
-                        }
-                    } else {
-                        new_segments = Some(vec![segment.clone()]);
-                    }
-                }
-                DeltaEvent::SegmentRemoved { event_id: _, segment_id } => {
-                    if let Some(segments) = &mut new_segments {
-                        segments.retain(|s| s.id != *segment_id);
-                    }
-                }
-                DeltaEvent::Hydration { event_id: _, features, segments } => {
-                    new_features = features.clone();
-                    new_segments = Some(segments.clone());
-                }
-            }
-        }
-
-        new_features.sort();
+        Self::apply_delta(&mut new_features, &mut new_segments, delta);
 
         ClientFeatures {
             version: self.version,
