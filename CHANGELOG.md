@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.6](https://github.com/Unleash/unleash-types-rs/compare/v0.15.5...v0.15.6) - 2025-01-30
+
+### ⚙️ Miscellaneous Tasks
+- refactor delta applying to be in generic function (#69) (by @sjaanus) - #69
+
+### Contributors
+
+* @sjaanus
+
 ## [0.15.5](https://github.com/Unleash/unleash-types-rs/compare/v0.15.4...v0.15.5) - 2025-01-29
 
 ### 🚀 Features
