@@ -525,27 +525,21 @@ pub struct ClientFeaturesDelta {
 
 impl ClientFeatures {
     /// Modifies the current ClientFeatures instance by applying the events.
-    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
-        Self::apply_delta(&mut self.features, &mut self.segments, delta);
+    pub fn apply_delta(&mut self, delta: &ClientFeaturesDelta) {
+        self.apply_delta_events(delta);
     }
 
     /// Returns a new ClientFeatures instance with the events applied.
-    pub fn create_from_delta(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
-        let mut new_features = self.features.clone();
-        let mut new_segments = self.segments.clone();
-
-        Self::apply_delta(&mut new_features, &mut new_segments, delta);
-
-        ClientFeatures {
-            version: self.version,
-            features: new_features,
-            segments: new_segments,
-            query: self.query.clone(),
-            meta: self.meta.clone(),
-        }
+    pub fn create_from_delta(delta: &ClientFeaturesDelta) -> ClientFeatures {
+        let mut client_features = ClientFeatures::default();
+        client_features.apply_delta_events(delta);
+        client_features
     }
 
-    fn apply_delta(features: &mut Vec<ClientFeature>, segments: &mut Option<Vec<Segment>>, delta: &ClientFeaturesDelta) {
+
+    fn apply_delta_events(&mut self, delta: &ClientFeaturesDelta) {
+        let segments = &mut self.segments;
+        let features = &mut self.features;
         for event in &delta.events {
             match event {
                 DeltaEvent::FeatureUpdated { feature, .. } => {
@@ -822,15 +816,7 @@ mod tests {
         let base_delta: ClientFeaturesDelta =
             from_reader(read_file(base_path).unwrap()).unwrap();
 
-        let initial_features = ClientFeatures {
-            version: 2,
-            features: vec![],
-            segments: None,
-            query: None,
-            meta: None,
-        };
-
-        let updated_features = initial_features.modify_and_copy(&base_delta);
+        let mut updated_features = ClientFeatures::create_from_delta(&base_delta);
         let expected_feature_count = base_delta
             .events
             .iter()
@@ -839,7 +825,7 @@ mod tests {
         assert_eq!(updated_features.features.len(), expected_feature_count);
 
         let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
-        let final_features = updated_features.modify_and_copy(&delta_update);
+        let final_features = updated_features.apply_delta(&delta_update);
 
         let mut sorted_delta_features: Vec<ClientFeature> = delta_update
             .events
