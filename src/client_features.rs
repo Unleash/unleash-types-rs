@@ -525,95 +525,54 @@ pub struct ClientFeaturesDelta {
 
 impl ClientFeatures {
     /// Modifies the current ClientFeatures instance by applying the events.
-    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
-        for event in &delta.events {
-            match event {
-                DeltaEvent::FeatureUpdated { event_id: _, feature } => {
-                    if let Some(existing) = self.features.iter_mut().find(|f| f.name == feature.name) {
-                        *existing = feature.clone();
-                    } else {
-                        self.features.push(feature.clone());
-                    }
-                }
-                DeltaEvent::FeatureRemoved { event_id: _, feature_name } => {
-                    self.features.retain(|f| f.name != *feature_name);
-                }
-                DeltaEvent::SegmentUpdated { event_id: _, segment } => {
-                    if self.segments.is_none() {
-                        self.segments = Some(Vec::new());
-                    }
-                    if let Some(segments) = &mut self.segments {
-                        if let Some(existing) = segments.iter_mut().find(|s| s.id == segment.id) {
-                            *existing = segment.clone();
-                        } else {
-                            segments.push(segment.clone());
-                        }
-                    }
-                }
-                DeltaEvent::SegmentRemoved { event_id: _, segment_id } => {
-                    if let Some(segments) = &mut self.segments {
-                        segments.retain(|s| s.id != *segment_id);
-                    }
-                }
-                DeltaEvent::Hydration { event_id: _, features, segments } => {
-                    self.features = features.clone();
-                    self.segments = Some(segments.clone());
-                }
-            }
-        }
-
-        self.features.sort();
+    pub fn apply_delta(&mut self, delta: &ClientFeaturesDelta) {
+        self.apply_delta_events(delta);
     }
 
     /// Returns a new ClientFeatures instance with the events applied.
-    pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
-        let mut new_features = self.features.clone();
-        let mut new_segments = self.segments.clone();
+    pub fn create_from_delta(delta: &ClientFeaturesDelta) -> ClientFeatures {
+        let mut client_features = ClientFeatures::default();
+        client_features.apply_delta_events(delta);
+        client_features
+    }
 
+
+    fn apply_delta_events(&mut self, delta: &ClientFeaturesDelta) {
+        let segments = &mut self.segments;
+        let features = &mut self.features;
         for event in &delta.events {
             match event {
-                DeltaEvent::FeatureUpdated { event_id: _, feature } => {
-                    if let Some(existing) = new_features.iter_mut().find(|f| f.name == feature.name) {
+                DeltaEvent::FeatureUpdated { feature, .. } => {
+                    if let Some(existing) = features.iter_mut().find(|f| f.name == feature.name) {
                         *existing = feature.clone();
                     } else {
-                        new_features.push(feature.clone());
+                        features.push(feature.clone());
                     }
                 }
-                DeltaEvent::FeatureRemoved { event_id: _, feature_name } => {
-                    new_features.retain(|f| f.name != *feature_name);
+                DeltaEvent::FeatureRemoved { feature_name, .. } => {
+                    features.retain(|f| f.name != *feature_name);
                 }
-                DeltaEvent::SegmentUpdated { event_id: _, segment } => {
-                    if let Some(segments) = &mut new_segments {
-                        if let Some(existing) = segments.iter_mut().find(|seg| seg.id == segment.id) {
-                            *existing = segment.clone();
-                        } else {
-                            segments.push(segment.clone());
-                        }
+                DeltaEvent::SegmentUpdated { segment, .. } => {
+                    let segments_list = segments.get_or_insert_with(Vec::new);
+                    if let Some(existing) = segments_list.iter_mut().find(|s| s.id == segment.id) {
+                        *existing = segment.clone();
                     } else {
-                        new_segments = Some(vec![segment.clone()]);
+                        segments_list.push(segment.clone());
                     }
                 }
-                DeltaEvent::SegmentRemoved { event_id: _, segment_id } => {
-                    if let Some(segments) = &mut new_segments {
-                        segments.retain(|s| s.id != *segment_id);
+                DeltaEvent::SegmentRemoved { segment_id, .. } => {
+                    if let Some(segments_list) = segments {
+                        segments_list.retain(|s| s.id != *segment_id);
                     }
                 }
-                DeltaEvent::Hydration { event_id: _, features, segments } => {
-                    new_features = features.clone();
-                    new_segments = Some(segments.clone());
+                DeltaEvent::Hydration { features: new_features, segments: new_segments, .. } => {
+                    *features = new_features.clone();
+                    *segments = Some(new_segments.clone());
                 }
             }
         }
 
-        new_features.sort();
-
-        ClientFeatures {
-            version: self.version,
-            features: new_features,
-            segments: new_segments,
-            query: self.query.clone(),
-            meta: self.meta.clone(),
-        }
+        features.sort();
     }
 }
 
@@ -632,13 +591,13 @@ impl Default for ClientFeatures {
 
 impl From<ClientFeaturesDelta> for ClientFeatures {
     fn from(value: ClientFeaturesDelta) -> Self {
-        ClientFeatures::default().modify_and_copy(&value)
+        ClientFeatures::create_from_delta(&value)
     }
 }
 
 impl From<&ClientFeaturesDelta> for ClientFeatures {
     fn from(value: &ClientFeaturesDelta) -> Self {
-        ClientFeatures::default().modify_and_copy(value)
+        ClientFeatures::create_from_delta(value)
     }
 }
 
@@ -844,11 +803,11 @@ mod tests {
             query: None,
             meta: None,
         };
-        features.modify_in_place(&base_delta);
+        features.apply_delta(&base_delta);
         assert_eq!(features.features.len(), 3);
         let delta: ClientFeaturesDelta =
             from_reader(read_file(delta).unwrap()).unwrap();
-        features.modify_in_place(&delta);
+        features.apply_delta(&delta);
         assert_eq!(features.features.len(), 2);
     }
 
@@ -857,15 +816,7 @@ mod tests {
         let base_delta: ClientFeaturesDelta =
             from_reader(read_file(base_path).unwrap()).unwrap();
 
-        let initial_features = ClientFeatures {
-            version: 2,
-            features: vec![],
-            segments: None,
-            query: None,
-            meta: None,
-        };
-
-        let updated_features = initial_features.modify_and_copy(&base_delta);
+        let mut updated_features = ClientFeatures::create_from_delta(&base_delta);
         let expected_feature_count = base_delta
             .events
             .iter()
@@ -874,7 +825,7 @@ mod tests {
         assert_eq!(updated_features.features.len(), expected_feature_count);
 
         let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
-        let final_features = updated_features.modify_and_copy(&delta_update);
+        updated_features.apply_delta(&delta_update);
 
         let mut sorted_delta_features: Vec<ClientFeature> = delta_update
             .events
@@ -890,7 +841,7 @@ mod tests {
         sorted_delta_features.sort();
 
         let serialized_delta_updates = to_string(&sorted_delta_features).unwrap();
-        let serialized_final_features = to_string(&final_features.features).unwrap();
+        let serialized_final_features = to_string(&updated_features.features).unwrap();
 
         assert_eq!(serialized_delta_updates, serialized_final_features);
     }
