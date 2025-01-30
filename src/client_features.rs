@@ -591,13 +591,13 @@ impl Default for ClientFeatures {
 
 impl From<ClientFeaturesDelta> for ClientFeatures {
     fn from(value: ClientFeaturesDelta) -> Self {
-        ClientFeatures::default().modify_and_copy(&value)
+        ClientFeatures::create_from_delta(&value)
     }
 }
 
 impl From<&ClientFeaturesDelta> for ClientFeatures {
     fn from(value: &ClientFeaturesDelta) -> Self {
-        ClientFeatures::default().modify_and_copy(value)
+        ClientFeatures::create_from_delta(&value)
     }
 }
 
@@ -803,11 +803,11 @@ mod tests {
             query: None,
             meta: None,
         };
-        features.modify_in_place(&base_delta);
+        features.apply_delta(&base_delta);
         assert_eq!(features.features.len(), 3);
         let delta: ClientFeaturesDelta =
             from_reader(read_file(delta).unwrap()).unwrap();
-        features.modify_in_place(&delta);
+        features.apply_delta(&delta);
         assert_eq!(features.features.len(), 2);
     }
 
@@ -825,7 +825,7 @@ mod tests {
         assert_eq!(updated_features.features.len(), expected_feature_count);
 
         let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
-        let final_features = updated_features.apply_delta(&delta_update);
+        updated_features.apply_delta(&delta_update);
 
         let mut sorted_delta_features: Vec<ClientFeature> = delta_update
             .events
@@ -841,7 +841,7 @@ mod tests {
         sorted_delta_features.sort();
 
         let serialized_delta_updates = to_string(&sorted_delta_features).unwrap();
-        let serialized_final_features = to_string(&final_features.features).unwrap();
+        let serialized_final_features = to_string(&updated_features.features).unwrap();
 
         assert_eq!(serialized_delta_updates, serialized_final_features);
     }
