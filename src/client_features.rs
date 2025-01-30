@@ -524,6 +524,27 @@ pub struct ClientFeaturesDelta {
 }
 
 impl ClientFeatures {
+    /// Modifies the current ClientFeatures instance by applying the events.
+    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
+        Self::apply_delta(&mut self.features, &mut self.segments, delta);
+    }
+
+    /// Returns a new ClientFeatures instance with the events applied.
+    pub fn create_from_delta(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
+        let mut new_features = self.features.clone();
+        let mut new_segments = self.segments.clone();
+
+        Self::apply_delta(&mut new_features, &mut new_segments, delta);
+
+        ClientFeatures {
+            version: self.version,
+            features: new_features,
+            segments: new_segments,
+            query: self.query.clone(),
+            meta: self.meta.clone(),
+        }
+    }
+
     fn apply_delta(features: &mut Vec<ClientFeature>, segments: &mut Option<Vec<Segment>>, delta: &ClientFeaturesDelta) {
         for event in &delta.events {
             match event {
@@ -558,27 +579,6 @@ impl ClientFeatures {
         }
 
         features.sort();
-    }
-
-    /// Modifies the current ClientFeatures instance by applying the events.
-    pub fn modify_in_place(&mut self, delta: &ClientFeaturesDelta) {
-        Self::apply_delta(&mut self.features, &mut self.segments, delta);
-    }
-
-    /// Returns a new ClientFeatures instance with the events applied.
-    pub fn modify_and_copy(&self, delta: &ClientFeaturesDelta) -> ClientFeatures {
-        let mut new_features = self.features.clone();
-        let mut new_segments = self.segments.clone();
-
-        Self::apply_delta(&mut new_features, &mut new_segments, delta);
-
-        ClientFeatures {
-            version: self.version,
-            features: new_features,
-            segments: new_segments,
-            query: self.query.clone(),
-            meta: self.meta.clone(),
-        }
     }
 }
 
