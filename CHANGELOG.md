@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.7](https://github.com/Unleash/unleash-types-rs/compare/v0.15.6...v0.15.7) - 2025-02-17
+
+### 🚀 Features
+- event_id finder for delta event (#71) (by @sjaanus) - #71
+
+### Contributors
+
+* @sjaanus
+
 ## [0.15.6](https://github.com/Unleash/unleash-types-rs/compare/v0.15.5...v0.15.6) - 2025-01-30
 
 ### ⚙️ Miscellaneous Tasks
