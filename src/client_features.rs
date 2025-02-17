@@ -484,35 +484,48 @@ pub enum DeltaEvent {
     /// Event for a feature update.
     FeatureUpdated {
         #[serde(rename = "eventId")]
-        event_id: i32,
+        event_id: u32,
         feature: ClientFeature,
     },
     /// Event for a feature removal.
     #[serde(rename_all = "camelCase")]
     FeatureRemoved {
-        event_id: i32,
+        event_id: u32,
         feature_name: String,
     },
     /// Event for a segment update.
     SegmentUpdated {
         #[serde(rename = "eventId")]
-        event_id: i32,
+        event_id: u32,
         segment: Segment,
     },
     /// Event for a segment removal.
     #[serde(rename_all = "camelCase")]
     SegmentRemoved {
-        event_id: i32,
+        event_id: u32,
         segment_id: i32,
     },
     /// Hydration event for features and segments.
     Hydration {
         #[serde(rename = "eventId")]
-        event_id: i32,
+        event_id: u32,
         features: Vec<ClientFeature>,
         segments: Vec<Segment>,
     },
 }
+
+impl DeltaEvent {
+    fn event_id(&self) -> u32 {
+        match self {
+            DeltaEvent::FeatureUpdated { event_id, .. }
+            | DeltaEvent::FeatureRemoved { event_id, .. }
+            | DeltaEvent::SegmentUpdated { event_id, .. }
+            | DeltaEvent::SegmentRemoved { event_id, .. }
+            | DeltaEvent::Hydration { event_id, .. } => *event_id,
+        }
+    }
+}
+
 
 /// Schema for delta updates of feature configurations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
