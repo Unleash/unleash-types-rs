@@ -515,7 +515,7 @@ pub enum DeltaEvent {
 }
 
 impl DeltaEvent {
-    fn event_id(&self) -> u32 {
+    pub fn get_event_id(&self) -> u32 {
         match self {
             DeltaEvent::FeatureUpdated { event_id, .. }
             | DeltaEvent::FeatureRemoved { event_id, .. }
