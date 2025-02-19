@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.9](https://github.com/Unleash/unleash-types-rs/compare/v0.15.8...v0.15.9) - 2025-02-19
+
+### 🚀 Features
+- add project to feature removed event (#76) (by @sjaanus) - #76
+
+### Contributors
+
+* @sjaanus
+
 ## [0.15.8](https://github.com/Unleash/unleash-types-rs/compare/v0.15.7...v0.15.8) - 2025-02-17
 
 ### 🐛 Bug Fixes
