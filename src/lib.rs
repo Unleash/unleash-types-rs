@@ -57,10 +57,10 @@ mod tests {
     use crate::{Deduplicate, Merge};
 
     use super::client_features::*;
+    use serde::Serialize;
     use serde_json::{json, to_string};
     use std::fs;
     use std::hash::{Hash, Hasher};
-    use serde::Serialize;
     use test_case::test_case;
 
     #[test_case("01-simple-examples"; "can parse legacy format")]
@@ -183,18 +183,18 @@ mod tests {
                 self.name == other.name
             }
         }
-        let first = MergeTester{
+        let first = MergeTester {
             name: "susan".to_string(),
             enabled: false,
         };
-        let second = MergeTester{
+        let second = MergeTester {
             name: "susan".to_string(),
             enabled: true,
         };
 
         let result = vec![first].merge(vec![second]);
 
-        let expected = vec![MergeTester{
+        let expected = vec![MergeTester {
             name: "susan".to_string(),
             enabled: true,
         }];
