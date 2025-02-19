@@ -493,6 +493,7 @@ pub enum DeltaEvent {
     FeatureRemoved {
         event_id: u32,
         feature_name: String,
+        project: String,
     },
     /// Event for a segment update.
     SegmentUpdated {
@@ -502,10 +503,7 @@ pub enum DeltaEvent {
     },
     /// Event for a segment removal.
     #[serde(rename_all = "camelCase")]
-    SegmentRemoved {
-        event_id: u32,
-        segment_id: i32,
-    },
+    SegmentRemoved { event_id: u32, segment_id: i32 },
     /// Hydration event for features and segments.
     Hydration {
         #[serde(rename = "eventId")]
@@ -526,7 +524,6 @@ impl DeltaEvent {
         }
     }
 }
-
 
 /// Schema for delta updates of feature configurations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -549,7 +546,6 @@ impl ClientFeatures {
         client_features.apply_delta_events(delta);
         client_features
     }
-
 
     fn apply_delta_events(&mut self, delta: &ClientFeaturesDelta) {
         let segments = &mut self.segments;
@@ -579,7 +575,11 @@ impl ClientFeatures {
                         segments_list.retain(|s| s.id != *segment_id);
                     }
                 }
-                DeltaEvent::Hydration { features: new_features, segments: new_segments, .. } => {
+                DeltaEvent::Hydration {
+                    features: new_features,
+                    segments: new_segments,
+                    ..
+                } => {
                     *features = new_features.clone();
                     *segments = Some(new_segments.clone());
                 }
@@ -589,7 +589,6 @@ impl ClientFeatures {
         features.sort();
     }
 }
-
 
 impl Default for ClientFeatures {
     fn default() -> Self {
@@ -617,13 +616,13 @@ impl From<&ClientFeaturesDelta> for ClientFeatures {
 
 #[cfg(test)]
 mod tests {
-    use serde_qs::Config;
-    use std::{fs::File, io::BufReader, path::PathBuf};
-    use serde_json::{from_reader, to_string};
     use crate::{
         client_features::{ClientFeature, ClientFeaturesDelta},
         Merge, Upsert,
     };
+    use serde_json::{from_reader, to_string};
+    use serde_qs::Config;
+    use std::{fs::File, io::BufReader, path::PathBuf};
 
     use super::{ClientFeatures, Constraint, DeltaEvent, Operator, Segment, Strategy};
     use crate::client_features::Context;
@@ -808,8 +807,7 @@ mod tests {
 
     #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
     pub fn can_take_delta_updates(base: PathBuf, delta: PathBuf) {
-        let base_delta: ClientFeaturesDelta =
-            from_reader(read_file(base).unwrap()).unwrap();
+        let base_delta: ClientFeaturesDelta = from_reader(read_file(base).unwrap()).unwrap();
         let mut features = ClientFeatures {
             version: 2,
             features: vec![],
@@ -819,16 +817,14 @@ mod tests {
         };
         features.apply_delta(&base_delta);
         assert_eq!(features.features.len(), 3);
-        let delta: ClientFeaturesDelta =
-            from_reader(read_file(delta).unwrap()).unwrap();
+        let delta: ClientFeaturesDelta = from_reader(read_file(delta).unwrap()).unwrap();
         features.apply_delta(&delta);
         assert_eq!(features.features.len(), 2);
     }
 
     #[test_case("./examples/delta_base.json".into(), "./examples/delta_patch.json".into(); "Base and delta")]
     pub fn validate_delta_updates(base_path: PathBuf, delta_path: PathBuf) {
-        let base_delta: ClientFeaturesDelta =
-            from_reader(read_file(base_path).unwrap()).unwrap();
+        let base_delta: ClientFeaturesDelta = from_reader(read_file(base_path).unwrap()).unwrap();
 
         let mut updated_features = ClientFeatures::create_from_delta(&base_delta);
         let expected_feature_count = base_delta
@@ -838,7 +834,8 @@ mod tests {
             .count();
         assert_eq!(updated_features.features.len(), expected_feature_count);
 
-        let delta_update: ClientFeaturesDelta = from_reader(read_file(delta_path).unwrap()).unwrap();
+        let delta_update: ClientFeaturesDelta =
+            from_reader(read_file(delta_path).unwrap()).unwrap();
         updated_features.apply_delta(&delta_update);
 
         let mut sorted_delta_features: Vec<ClientFeature> = delta_update
