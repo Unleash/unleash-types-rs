@@ -681,6 +681,7 @@ mod tests {
             "connectVia": null,
             "environment": "test-env",
             "instanceId": "test-instance-id",
+            "connectionId": "test-connection-id",
             "interval": 15000,
             "started": "1970-01-01T00:16:40Z",
             "strategies": [],
