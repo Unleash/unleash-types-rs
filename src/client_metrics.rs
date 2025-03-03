@@ -101,6 +101,7 @@ pub struct ClientMetrics {
     pub bucket: MetricBucket,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
+    pub connection_id: Option<String>,
     #[serde(flatten)]
     pub metadata: MetricsMetadata,
 }
@@ -137,6 +138,7 @@ pub struct ClientApplication {
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
+    pub connection_id: Option<String>,
     pub interval: u32,
     pub started: DateTime<Utc>,
     pub strategies: Vec<String>,
@@ -162,6 +164,7 @@ impl ClientApplication {
             connect_via: Some(vec![]),
             environment: None,
             instance_id: None,
+            connection_id: None,
             interval,
             started: Utc::now(),
             strategies: vec![],
@@ -225,6 +228,7 @@ impl Merge for ClientApplication {
             app_name: self.app_name,
             environment: self.environment.or(other.environment),
             instance_id: self.instance_id.or(other.instance_id),
+            connection_id: self.connection_id.or(other.connection_id),
             interval: self.interval,
             started: self.started,
             strategies: merged_strategies,
@@ -319,6 +323,7 @@ mod tests {
             interval: 15500,
             environment: Some("development".into()),
             instance_id: Some("instance_id".into()),
+            connection_id: Some("connection_id".into()),
             started: Utc::now(),
             strategies: vec!["default".into(), "gradualRollout".into()],
             metadata: MetricsMetadata {
@@ -336,6 +341,7 @@ mod tests {
             Some("unleash-client-java:7.1.0".into())
         );
         assert_eq!(merged.instance_id, Some("instance_id".into()));
+        assert_eq!(merged.connection_id, Some("connection_id".into()));
         assert_eq!(merged.started, demo_data_orig.started);
         assert_eq!(merged.strategies.len(), 2);
     }
@@ -635,6 +641,7 @@ mod tests {
             },
             "environment": "test-env",
             "instanceId": "test-instance-id",
+            "connectionId": "test-connection-id",
             "sdkVersion": "rust-1.3.0",
             "yggdrasilVersion": null,
             "platformName": "rustc",
@@ -648,6 +655,7 @@ mod tests {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
             instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
             bucket: MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
@@ -689,6 +697,7 @@ mod tests {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
             instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
                 yggdrasil_version: None,
