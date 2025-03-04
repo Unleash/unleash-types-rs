@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.10](https://github.com/Unleash/unleash-types-rs/compare/v0.15.9...v0.15.10) - 2025-03-04
+
+### 🚀 Features
+- add connection_id for ClientApplication and ClientMetrics ([#81](https://github.com/Unleash/unleash-types-rs/pull/81)) (by @kwasniew) - #81
+
+### Contributors
+
+* @kwasniew
+
 ## [0.15.9](https://github.com/Unleash/unleash-types-rs/compare/v0.15.8...v0.15.9) - 2025-02-19
 
 ### 🚀 Features
