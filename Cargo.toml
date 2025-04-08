@@ -13,12 +13,13 @@ homepage = "https://github.com/Unleash/unleash-types-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = []
+default = ["wall-clock"]
+wall-clock = ["chrono/clock"]
 openapi = ["utoipa"]
 hashes = ["xxhash-rust", "base64"]
 [dependencies]
 base64 = { version = "0.22.1", optional = true }
-chrono = { version = "0.4.39", features = ["serde"] }
+chrono = { version = "0.4.39", default-features = false, features = ["serde", "std"] }
 derive_builder = "0.20.2"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"
