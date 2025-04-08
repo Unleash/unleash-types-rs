@@ -8,6 +8,7 @@ use utoipa::{IntoParams, ToSchema};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
@@ -56,21 +57,45 @@ pub enum Operator {
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub user_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub session_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub environment: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub app_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub current_time: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "stringify_numbers_and_booleans",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub remote_address: Option<String>,
     #[serde(default)]
     #[serde(
-        deserialize_with = "remove_null_properties",
+        deserialize_with = "stringify_numbers_and_booleans_remove_nulls_and_non_strings",
         serialize_with = "optional_ordered_map",
         skip_serializing_if = "Option::is_none"
     )]
@@ -89,21 +114,52 @@ pub struct Context {
 // before trying to execute our logic, so we scrub out those empty values instead, they do nothing useful for us.
 // The second reason is that we can't shield the Rust code from consumers using the FFI layers and potentially doing
 // exactly the same thing in languages that allow it. They should not do that. But if they do we have enough information
-// to understand the intent of the executed code clearly and there's no reason to fail
-fn remove_null_properties<'de, D>(
+// to understand the intent of the executed code clearly and there's no reason to fail.
+// This also maps numbers + booleans to strings, and disregards other types without failing
+fn stringify_numbers_and_booleans_remove_nulls_and_non_strings<'de, D>(
     deserializer: D,
 ) -> Result<Option<HashMap<String, String>>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let props: Option<HashMap<String, Option<String>>> = Option::deserialize(deserializer)?;
+    let props: Option<HashMap<String, Option<Value>>> = Option::deserialize(deserializer)?;
     Ok(props.map(|props| {
         props
             .into_iter()
-            .filter(|x| x.1.is_some())
-            .map(|x| (x.0, x.1.unwrap()))
+            .filter_map(|(k, v)| match v {
+                Some(Value::String(s)) => {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some((k, s))
+                    }
+                },
+                Some(Value::Number(n)) => Some((k, n.to_string())),
+                Some(Value::Bool(b)) => Some((k, b.to_string())),
+                _ => None,
+            })
             .collect()
     }))
+}
+
+// Allowing a looser deserialization for the contexts properties to match Unleash behavior
+fn stringify_numbers_and_booleans<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let prop: Option<Value> = Option::deserialize(deserializer)?;
+    Ok(match prop {
+        Some(Value::String(s)) => {
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        }
+        Some(Value::Number(n)) => Some(n.to_string()),
+        Some(Value::Bool(b)) => Some(b.to_string()),
+        _ => None,
+    })
 }
 
 ///
@@ -631,6 +687,59 @@ mod tests {
     pub enum EdgeError {
         SomethingWentWrong,
     }
+    #[test]
+    pub fn can_deserialize_numbers_to_strings() {
+        let json = serde_json::json!({
+            "context": {
+                "userId": 123123,
+                "sessionId": false,
+                "environment": {
+                    "aKey": "aValue",
+                },
+                "appName": "name",
+                "currentTime": null,
+                "properties": {
+                    "someValue": 123,
+                    "otherValue": null,
+                    "anotherValue": {
+                        "someKey": 123,
+                    },
+                    "boolProp": true,
+                }
+            },
+        });
+        let context: Context = serde_json::from_value(json["context"].clone()).unwrap();
+        assert_eq!(context.user_id.unwrap(), "123123");
+        assert_eq!(context.session_id.unwrap(), "false");
+        assert_eq!(context.app_name.unwrap(), "name");
+        assert_eq!(context.current_time.is_none(), true);
+        assert_eq!(context.environment.is_none(), true);
+        assert_eq!(context.remote_address.is_none(), true);
+        assert_eq!(
+            context
+                .properties
+                .clone()
+                .unwrap()
+                .get("someValue")
+                .unwrap(),
+            "123"
+        );
+        assert_eq!(
+            context.properties.clone().unwrap().get("boolProp").unwrap(),
+            "true"
+        );
+        assert!(!context
+            .properties
+            .clone()
+            .unwrap()
+            .contains_key("otherValue"));
+        assert!(!context
+            .properties
+            .clone()
+            .unwrap()
+            .contains_key("anotherValue"));
+    }
+
     #[test]
     pub fn ordering_is_stable_for_constraints() {
         let c1 = Constraint {
