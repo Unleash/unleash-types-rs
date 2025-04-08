@@ -127,7 +127,13 @@ where
         props
             .into_iter()
             .filter_map(|(k, v)| match v {
-                Some(Value::String(s)) => Some((k, s)),
+                Some(Value::String(s)) => {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some((k, s))
+                    }
+                },
                 Some(Value::Number(n)) => Some((k, n.to_string())),
                 Some(Value::Bool(b)) => Some((k, b.to_string())),
                 _ => None,
