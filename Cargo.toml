@@ -14,7 +14,7 @@ homepage = "https://github.com/Unleash/unleash-types-rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 default = ["wall-clock"]
-wall-clock = ["chrono/clock"]
+wall-clock = ["chrono/clock", "chrono/wasmbind"]
 openapi = ["utoipa"]
 hashes = ["xxhash-rust", "base64"]
 [dependencies]
