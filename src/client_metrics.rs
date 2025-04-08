@@ -158,6 +158,7 @@ pub struct MetricsMetadata {
 }
 
 impl ClientApplication {
+    #[cfg(feature = "wall-clock")]
     pub fn new(app_name: &str, interval: u32) -> Self {
         Self {
             app_name: app_name.into(),
@@ -251,7 +252,7 @@ impl Merge for ClientApplication {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{Duration, Utc};
+    use chrono::Utc;
 
     use super::*;
 
@@ -303,233 +304,6 @@ mod tests {
         assert_eq!(red_count, &1);
         assert_eq!(green_count, &3);
         assert_eq!(disabled_count, &1);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_should_eliminate_duplicate_strategies() {
-        let mut demo_data_1 = ClientApplication::new("demo", 15000);
-        let mut demo_data_2 = ClientApplication::new("demo", 15000);
-        demo_data_1.add_strategies(vec!["default".into(), "gradualRollout".into()]);
-        demo_data_2.add_strategies(vec!["default".into(), "randomRollout".into()]);
-        let demo_data_3 = demo_data_1.merge(demo_data_2);
-        assert_eq!(demo_data_3.strategies.len(), 3);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_should_use_set_values() {
-        let demo_data_orig = ClientApplication::new("demo", 15000);
-        let demo_data_with_more_data = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("development".into()),
-            instance_id: Some("instance_id".into()),
-            connection_id: Some("connection_id".into()),
-            started: Utc::now(),
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        // Cloning orig here, to avoid the destructive merge preventing us from testing
-        let merged = demo_data_orig.clone().merge(demo_data_with_more_data);
-        assert_eq!(merged.interval, demo_data_orig.interval);
-        assert_eq!(merged.environment, Some("development".into()));
-        assert_eq!(
-            merged.metadata.sdk_version,
-            Some("unleash-client-java:7.1.0".into())
-        );
-        assert_eq!(merged.instance_id, Some("instance_id".into()));
-        assert_eq!(merged.connection_id, Some("connection_id".into()));
-        assert_eq!(merged.started, demo_data_orig.started);
-        assert_eq!(merged.strategies.len(), 2);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_prioritizes_left_hand_side() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-
-        let left = demo_data_2.clone().merge(demo_data_1.clone());
-        let right = demo_data_1.merge(demo_data_2);
-
-        assert_eq!(left, right);
-    }
-
-    #[test]
-    pub fn can_connect_via_new_application() {
-        let demo_data = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started: Utc::now(),
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-        let connected_via = demo_data.connect_via("unleash-edge", "edge-id-1");
-        assert_eq!(
-            connected_via.connect_via,
-            Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "edge-id-1".into(),
-            }]),
-        )
-    }
-
-    #[test]
-    pub fn can_merge_connected_via() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "1".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "2".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-
-        let merged = demo_data_1.merge(demo_data_2);
-        let connections = merged.connect_via.unwrap();
-        assert_eq!(connections.len(), 2);
-        assert_eq!(
-            connections,
-            vec![
-                ConnectVia {
-                    app_name: "unleash-edge".into(),
-                    instance_id: "1".into(),
-                },
-                ConnectVia {
-                    app_name: "unleash-edge".into(),
-                    instance_id: "2".into(),
-                }
-            ]
-        )
-    }
-
-    #[test]
-    pub fn can_merge_connected_via_where_one_side_is_none() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "2".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-        let merged = demo_data_1.clone().merge(demo_data_2.clone());
-        assert_eq!(demo_data_2.connect_via, merged.connect_via);
-        let reverse_merge = demo_data_2.clone().merge(demo_data_1);
-        assert_eq!(demo_data_2.connect_via, reverse_merge.connect_via);
-    }
-
-    #[test]
-    pub fn can_have_client_metrics_env_from_metrics_bucket() {
-        let start = Utc::now();
-        let mut stats_feature_one = ToggleStats::default();
-        stats_feature_one.count_variant("red");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.variant_disabled();
-        let mut stats_feature_two = ToggleStats::default();
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("green");
-        stats_feature_two.yes();
-        stats_feature_two.yes();
-        stats_feature_two.yes();
-        stats_feature_two.variant_disabled();
-        let mut map = HashMap::new();
-        map.insert("feature_one".to_string(), stats_feature_one);
-        map.insert("feature_two".to_string(), stats_feature_two);
-        let bucket = MetricBucket {
-            start,
-            stop: start + Duration::minutes(50),
-            toggles: map,
-        };
-        let client_metrics_env = from_bucket_app_name_and_env(
-            bucket,
-            "unleash_edge_metrics".into(),
-            "development".into(),
-            MetricsMetadata {
-                ..Default::default()
-            },
-        );
-        assert_eq!(client_metrics_env.len(), 2);
-        let feature_one_metrics = client_metrics_env
-            .clone()
-            .into_iter()
-            .find(|e| e.feature_name == "feature_one")
-            .unwrap();
-
-        assert_eq!(feature_one_metrics.yes, 4);
-        assert_eq!(feature_one_metrics.no, 1);
-
-        let feature_two_metrics = client_metrics_env
-            .into_iter()
-            .find(|e| e.feature_name == "feature_two")
-            .unwrap();
-
-        assert_eq!(feature_two_metrics.yes, 7);
-        assert_eq!(feature_two_metrics.no, 1);
     }
 
     #[test]
@@ -713,5 +487,241 @@ mod tests {
 
         let json_string = serde_json::to_string(&metrics).unwrap();
         assert_eq!(json_string, expected_registration);
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "wall-clock")]
+mod clock_tests {
+    use chrono::{Duration, Utc};
+
+    use super::*;
+
+
+    #[test]
+    pub fn can_have_client_metrics_env_from_metrics_bucket() {
+        let start = Utc::now();
+        let mut stats_feature_one = ToggleStats::default();
+        stats_feature_one.count_variant("red");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.variant_disabled();
+        let mut stats_feature_two = ToggleStats::default();
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("green");
+        stats_feature_two.yes();
+        stats_feature_two.yes();
+        stats_feature_two.yes();
+        stats_feature_two.variant_disabled();
+        let mut map = HashMap::new();
+        map.insert("feature_one".to_string(), stats_feature_one);
+        map.insert("feature_two".to_string(), stats_feature_two);
+        let bucket = MetricBucket {
+            start,
+            stop: start + Duration::minutes(50),
+            toggles: map,
+        };
+        let client_metrics_env = from_bucket_app_name_and_env(
+            bucket,
+            "unleash_edge_metrics".into(),
+            "development".into(),
+            MetricsMetadata {
+                ..Default::default()
+            },
+        );
+        assert_eq!(client_metrics_env.len(), 2);
+        let feature_one_metrics = client_metrics_env
+            .clone()
+            .into_iter()
+            .find(|e| e.feature_name == "feature_one")
+            .unwrap();
+
+        assert_eq!(feature_one_metrics.yes, 4);
+        assert_eq!(feature_one_metrics.no, 1);
+
+        let feature_two_metrics = client_metrics_env
+            .into_iter()
+            .find(|e| e.feature_name == "feature_two")
+            .unwrap();
+
+        assert_eq!(feature_two_metrics.yes, 7);
+        assert_eq!(feature_two_metrics.no, 1);
+    }
+
+    #[test]
+    pub fn can_connect_via_new_application() {
+        let demo_data = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started: Utc::now(),
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+        let connected_via = demo_data.connect_via("unleash-edge", "edge-id-1");
+        assert_eq!(
+            connected_via.connect_via,
+            Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "edge-id-1".into(),
+            }]),
+        )
+    }
+
+    #[test]
+    pub fn can_merge_connected_via_where_one_side_is_none() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "2".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+        let merged = demo_data_1.clone().merge(demo_data_2.clone());
+        assert_eq!(demo_data_2.connect_via, merged.connect_via);
+        let reverse_merge = demo_data_2.clone().merge(demo_data_1);
+        assert_eq!(demo_data_2.connect_via, reverse_merge.connect_via);
+    }
+
+    #[test]
+    pub fn can_merge_connected_via() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "1".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "2".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+
+        let merged = demo_data_1.merge(demo_data_2);
+        let connections = merged.connect_via.unwrap();
+        assert_eq!(connections.len(), 2);
+        assert_eq!(
+            connections,
+            vec![
+                ConnectVia {
+                    app_name: "unleash-edge".into(),
+                    instance_id: "1".into(),
+                },
+                ConnectVia {
+                    app_name: "unleash-edge".into(),
+                    instance_id: "2".into(),
+                }
+            ]
+        )
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_prioritizes_left_hand_side() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+
+        let left = demo_data_2.clone().merge(demo_data_1.clone());
+        let right = demo_data_1.merge(demo_data_2);
+
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_should_use_set_values() {
+        let demo_data_orig = ClientApplication::new("demo", 15000);
+        let demo_data_with_more_data = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("development".into()),
+            instance_id: Some("instance_id".into()),
+            connection_id: Some("connection_id".into()),
+            started: Utc::now(),
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        // Cloning orig here, to avoid the destructive merge preventing us from testing
+        let merged = demo_data_orig.clone().merge(demo_data_with_more_data);
+        assert_eq!(merged.interval, demo_data_orig.interval);
+        assert_eq!(merged.environment, Some("development".into()));
+        assert_eq!(
+            merged.metadata.sdk_version,
+            Some("unleash-client-java:7.1.0".into())
+        );
+        assert_eq!(merged.instance_id, Some("instance_id".into()));
+        assert_eq!(merged.connection_id, Some("connection_id".into()));
+        assert_eq!(merged.started, demo_data_orig.started);
+        assert_eq!(merged.strategies.len(), 2);
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_should_eliminate_duplicate_strategies() {
+        let mut demo_data_1 = ClientApplication::new("demo", 15000);
+        let mut demo_data_2 = ClientApplication::new("demo", 15000);
+        demo_data_1.add_strategies(vec!["default".into(), "gradualRollout".into()]);
+        demo_data_2.add_strategies(vec!["default".into(), "randomRollout".into()]);
+        let demo_data_3 = demo_data_1.merge(demo_data_2);
+        assert_eq!(demo_data_3.strategies.len(), 3);
     }
 }

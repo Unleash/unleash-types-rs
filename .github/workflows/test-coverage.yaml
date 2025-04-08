@@ -35,6 +35,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install required cargo packages for reporting format
         run: cargo install cargo-tarpaulin
+      - name: Test without default features
+        run: cargo test --no-default-features
       - name: Run Tarpaulin (Test coverage)
         run: |
           cargo tarpaulin --all-features --coveralls ${{ secrets.COVERALLS_KEY }}
