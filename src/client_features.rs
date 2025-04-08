@@ -71,7 +71,7 @@ pub struct Context {
     pub remote_address: Option<String>,
     #[serde(default)]
     #[serde(
-        deserialize_with = "stringify_numbers_remove_nulls_and_non_strings",
+        deserialize_with = "stringify_numbers_and_booleans_remove_nulls_and_non_strings",
         serialize_with = "optional_ordered_map",
         skip_serializing_if = "Option::is_none"
     )]
@@ -91,8 +91,8 @@ pub struct Context {
 // The second reason is that we can't shield the Rust code from consumers using the FFI layers and potentially doing
 // exactly the same thing in languages that allow it. They should not do that. But if they do we have enough information
 // to understand the intent of the executed code clearly and there's no reason to fail.
-// This also maps numbers to strings, and disregards other types without failing
-fn stringify_numbers_remove_nulls_and_non_strings<'de, D>(
+// This also maps numbers + booleans to strings, and disregards other types without failing
+fn stringify_numbers_and_booleans_remove_nulls_and_non_strings<'de, D>(
     deserializer: D,
 ) -> Result<Option<HashMap<String, String>>, D::Error>
 where
@@ -105,6 +105,7 @@ where
             .filter_map(|(k, v)| match v {
                 Some(Value::String(s)) => Some((k, s)),
                 Some(Value::Number(n)) => Some((k, n.to_string())),
+                Some(Value::Bool(b)) => Some((k, b.to_string())),
                 _ => None,
             })
             .collect()
@@ -652,9 +653,9 @@ mod tests {
         });
         let context: Context = serde_json::from_value(json["context"].clone()).unwrap();
         assert_eq!(context.properties.clone().unwrap().get("someValue").unwrap(), "123");
+        assert_eq!(context.properties.clone().unwrap().get("boolProp").unwrap(), "true");
         assert_eq!(context.properties.clone().unwrap().contains_key("otherValue"), false);
         assert_eq!(context.properties.clone().unwrap().contains_key("anotherValue"), false);
-        assert_eq!(context.properties.clone().unwrap().contains_key("boolProp"), false);
     }
 
 
