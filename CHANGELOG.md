@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.11](https://github.com/Unleash/unleash-types-rs/compare/v0.15.10...v0.15.11) - 2025-04-08
+
+### 🚀 Features
+- looser frontend context deserialization to match unleash/api/frontend ([#87](https://github.com/unleash/unleash-types-rs/issues/87)) (by @daveleek) - #87
+- gate system clock access behind a feature flag ([#90](https://github.com/unleash/unleash-types-rs/issues/90)) (by @sighphyre) - #90
+
+### Dependency updates
+- bump actions/create-github-app-token from 1 to 2 ([#86](https://github.com/unleash/unleash-types-rs/issues/86)) (by @dependabot[bot]) - #86
+
+### ⚙️ Miscellaneous Tasks
+- bump dependencies ([#88](https://github.com/unleash/unleash-types-rs/issues/88)) (by @chriswk) - #88
+
+### Contributors
+
+* @daveleek
+* @sighphyre
+* @chriswk
+* @dependabot[bot]
+
 ## [0.15.10](https://github.com/Unleash/unleash-types-rs/compare/v0.15.9...v0.15.10) - 2025-03-04
 
 ### 🚀 Features
