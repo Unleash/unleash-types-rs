@@ -146,12 +146,21 @@ pub struct ClientApplication {
     pub metadata: MetricsMetadata,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum SdkType {
+    Frontend,
+    Backend
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 #[derive(Default)]
 pub struct MetricsMetadata {
     pub sdk_version: Option<String>,
+    pub sdk_type: Option<SdkType>,
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
@@ -171,6 +180,7 @@ impl ClientApplication {
             strategies: vec![],
             metadata: MetricsMetadata {
                 sdk_version: None,
+                sdk_type: None,
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
@@ -236,6 +246,7 @@ impl Merge for ClientApplication {
             connect_via: merged_connected_via,
             metadata: MetricsMetadata {
                 sdk_version: self.metadata.sdk_version.or(other.metadata.sdk_version),
+                sdk_type: self.metadata.sdk_type.or(other.metadata.sdk_type),
                 yggdrasil_version: self
                     .metadata
                     .yggdrasil_version
@@ -417,6 +428,7 @@ mod tests {
             "instanceId": "test-instance-id",
             "connectionId": "test-connection-id",
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
@@ -437,6 +449,7 @@ mod tests {
             },
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
@@ -460,6 +473,7 @@ mod tests {
             "started": "1970-01-01T00:16:40Z",
             "strategies": [],
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
@@ -475,6 +489,7 @@ mod tests {
             connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
