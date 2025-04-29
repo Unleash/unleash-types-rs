@@ -148,6 +148,7 @@ pub struct ClientApplication {
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "lowercase")]
 pub enum SdkType {
     Frontend,
     Backend
@@ -427,6 +428,7 @@ mod tests {
             "instanceId": "test-instance-id",
             "connectionId": "test-connection-id",
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
@@ -471,6 +473,7 @@ mod tests {
             "started": "1970-01-01T00:16:40Z",
             "strategies": [],
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
