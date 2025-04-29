@@ -447,6 +447,7 @@ mod tests {
             },
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
@@ -485,6 +486,7 @@ mod tests {
             connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
