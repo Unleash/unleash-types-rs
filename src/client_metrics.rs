@@ -147,11 +147,18 @@ pub struct ClientApplication {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
+pub enum SdkType {
+    Frontend,
+    Backend
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 #[derive(Default)]
 pub struct MetricsMetadata {
     pub sdk_version: Option<String>,
+    pub sdk_type: Option<SdkType>,
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
