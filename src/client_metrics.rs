@@ -146,7 +146,7 @@ pub struct ClientApplication {
     pub metadata: MetricsMetadata,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub enum SdkType {
     Frontend,
     Backend
@@ -178,6 +178,7 @@ impl ClientApplication {
             strategies: vec![],
             metadata: MetricsMetadata {
                 sdk_version: None,
+                sdk_type: None,
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
@@ -243,6 +244,7 @@ impl Merge for ClientApplication {
             connect_via: merged_connected_via,
             metadata: MetricsMetadata {
                 sdk_version: self.metadata.sdk_version.or(other.metadata.sdk_version),
+                sdk_type: self.metadata.sdk_type.or(other.metadata.sdk_type),
                 yggdrasil_version: self
                     .metadata
                     .yggdrasil_version
