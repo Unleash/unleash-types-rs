@@ -147,6 +147,7 @@ pub struct ClientApplication {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub enum SdkType {
     Frontend,
     Backend
