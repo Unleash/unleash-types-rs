@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.12](https://github.com/Unleash/unleash-types-rs/compare/v0.15.11...v0.15.12) - 2025-04-29
+
+### 🚀 Features
+- sdk type in metrics metadata ([#92](https://github.com/unleash/unleash-types-rs/issues/92)) (by @kwasniew) - #92
+
+### Contributors
+
+* @kwasniew
+
 ## [0.15.11](https://github.com/Unleash/unleash-types-rs/compare/v0.15.10...v0.15.11) - 2025-04-08
 
 ### 🚀 Features
