@@ -137,6 +137,7 @@ pub struct ClientApplication {
     pub app_name: String,
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
+    pub projects: Vec<String>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
     pub interval: u32,
@@ -173,6 +174,7 @@ impl ClientApplication {
             app_name: app_name.into(),
             connect_via: Some(vec![]),
             environment: None,
+            projects: vec![],
             instance_id: None,
             connection_id: None,
             interval,
@@ -235,9 +237,13 @@ impl Merge for ClientApplication {
             })
             .or(other.connect_via.clone());
 
+        let mut merged_projects: Vec<String> = self.projects.into_iter().chain(other.projects).collect::<HashSet<String>>().into_iter().collect();
+        merged_projects.sort();
+
         ClientApplication {
             app_name: self.app_name,
             environment: self.environment.or(other.environment),
+            projects: merged_projects,
             instance_id: self.instance_id.or(other.instance_id),
             connection_id: self.connection_id.or(other.connection_id),
             interval: self.interval,
@@ -383,6 +389,7 @@ mod tests {
         {
             "appName": "some-app",
             "environment": "some-instance",
+            "projects": ["default"],
             "instanceId": "something",
             "interval": 15000,
             "started": "1867-11-07T12:00:00Z",
@@ -467,6 +474,7 @@ mod tests {
             "appName": "test-name",
             "connectVia": null,
             "environment": "test-env",
+            "projects": ["default"],
             "instanceId": "test-instance-id",
             "connectionId": "test-connection-id",
             "interval": 15000,
@@ -485,6 +493,7 @@ mod tests {
         let metrics = ClientApplication {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
+            projects: vec!["default".into()],
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
