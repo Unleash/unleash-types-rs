@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.13](https://github.com/Unleash/unleash-types-rs/compare/v0.15.12...v0.15.13) - 2025-04-30
+
+### 🚀 Features
+- client application projects ([#94](https://github.com/unleash/unleash-types-rs/issues/94)) (by @kwasniew) - #94
+
+### Contributors
+
+* @kwasniew
+
 ## [0.15.12](https://github.com/Unleash/unleash-types-rs/compare/v0.15.11...v0.15.12) - 2025-04-29
 
 ### 🚀 Features
