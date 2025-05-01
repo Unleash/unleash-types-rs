@@ -137,7 +137,7 @@ pub struct ClientApplication {
     pub app_name: String,
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
-    pub projects: Vec<String>,
+    pub projects: Option<Vec<String>>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
     pub interval: u32,
@@ -174,7 +174,7 @@ impl ClientApplication {
             app_name: app_name.into(),
             connect_via: Some(vec![]),
             environment: None,
-            projects: vec![],
+            projects: Some(vec![]),
             instance_id: None,
             connection_id: None,
             interval,
@@ -237,8 +237,21 @@ impl Merge for ClientApplication {
             })
             .or(other.connect_via.clone());
 
-        let mut merged_projects: Vec<String> = self.projects.into_iter().chain(other.projects).collect::<HashSet<String>>().into_iter().collect();
-        merged_projects.sort();
+        let merged_projects: Option<Vec<String>> = match (self.projects, other.projects) {
+            (Some(self_projects), Some(other_projects)) => {
+                let mut projects: Vec<String> = self_projects
+                    .into_iter()
+                    .chain(other_projects)
+                    .collect::<HashSet<String>>()
+                    .into_iter()
+                    .collect();
+                projects.sort();
+                Some(projects)
+            },
+            (Some(projects), None) => Some(projects),
+            (None, Some(projects)) => Some(projects),
+            (None, None) => None,
+        };
 
         ClientApplication {
             app_name: self.app_name,
@@ -493,7 +506,7 @@ mod tests {
         let metrics = ClientApplication {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
-            projects: vec!["default".into()],
+            projects: Some(vec!["default".into()]),
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
