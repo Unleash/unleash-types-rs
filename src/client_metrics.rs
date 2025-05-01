@@ -106,7 +106,7 @@ pub struct ClientMetrics {
     pub metadata: MetricsMetadata,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientMetricsEnv {
@@ -121,7 +121,7 @@ pub struct ClientMetricsEnv {
     pub metadata: MetricsMetadata,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Builder, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, Builder, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectVia {
