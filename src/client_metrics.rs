@@ -102,6 +102,8 @@ pub struct ClientMetrics {
     pub environment: Option<String>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub impact_metrics: Option<Vec<ImpactMetric>>,
     #[serde(flatten)]
     pub metadata: MetricsMetadata,
 }
@@ -165,6 +167,25 @@ pub struct MetricsMetadata {
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct MetricSample {
+    pub value: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct ImpactMetric {
+    pub name: String,
+    pub help: String,
+    pub r#type: String,
+    pub samples: Vec<MetricSample>,
 }
 
 impl ClientApplication {
@@ -285,6 +306,48 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
+
+    #[test]
+    fn client_metrics_with_impact_metrics_serialization() {
+        let impact_metrics = vec![
+            ImpactMetric {
+                name: "labeled_counter".into(),
+                help: "with labels".into(),
+                r#type: "counter".into(),
+                samples: vec![
+                    MetricSample {
+                        value: 10.0,
+                        labels: Some(HashMap::from([("foo".into(), "bar".into())])),
+                    },
+                ],
+            },
+        ];
+
+        let metrics = ClientMetrics {
+            app_name: "test-name".into(),
+            environment: Some("test-env".into()),
+            instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
+            impact_metrics: Some(impact_metrics.clone()),
+            bucket: MetricBucket {
+                start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                toggles: HashMap::new(),
+            },
+            metadata: MetricsMetadata {
+                sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
+                yggdrasil_version: None,
+                platform_name: Some("rustc".into()),
+                platform_version: Some("1.7.9".into()),
+            },
+        };
+
+        let json_string = serde_json::to_string(&metrics).unwrap();
+        let deserialized: ClientMetrics = serde_json::from_str(&json_string).unwrap();
+
+        assert_eq!(deserialized.impact_metrics, Some(impact_metrics));
+    }
 
     #[test]
     pub fn can_increment_counts() {
@@ -462,6 +525,7 @@ mod tests {
             environment: Some("test-env".into()),
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
+            impact_metrics: None,
             bucket: MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
