@@ -182,6 +182,16 @@ pub struct MetricSample {
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ImpactMetric {
+    pub name: String,
+    pub help: String,
+    pub r#type: String,
+    pub samples: Vec<MetricSample>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct ImpactMetricEnv {
     #[serde(skip)]
     pub app_name: String,
     #[serde(skip)]
@@ -314,7 +324,7 @@ mod tests {
     #[test]
     fn client_metrics_with_impact_metrics_serialization() {
         let impact_metrics = vec![
-            ImpactMetric {
+            ImpactMetricEnv {
                 environment: "".into(),
                 app_name: "".into(),
                 name: "labeled_counter".into(),
