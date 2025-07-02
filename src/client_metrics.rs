@@ -188,6 +188,28 @@ pub struct ImpactMetric {
     pub samples: Vec<MetricSample>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct ImpactMetricEnv {
+    #[serde(flatten)]
+    pub impact_metric: ImpactMetric,
+    #[serde(skip)]
+    pub app_name: String,
+    #[serde(skip)]
+    pub environment: String,
+}
+
+impl ImpactMetricEnv {
+    pub fn new(impact_metric: ImpactMetric, app_name: String, environment: String) -> Self {
+        Self {
+            impact_metric,
+            app_name,
+            environment,
+        }
+    }
+}
+
 impl ClientApplication {
     #[cfg(feature = "wall-clock")]
     pub fn new(app_name: &str, interval: u32) -> Self {
