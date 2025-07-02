@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.16](https://github.com/Unleash/unleash-types-rs/compare/v0.15.15...v0.15.16) - 2025-07-02
+
+### 🚀 Features
+- Impact metrics per env ([#102](https://github.com/unleash/unleash-types-rs/issues/102)) (by @kwasniew) - #102
+
+### Contributors
+
+* @kwasniew
+
 ## [0.15.15](https://github.com/Unleash/unleash-types-rs/compare/v0.15.14...v0.15.15) - 2025-06-30
 
 ### 🚀 Features
