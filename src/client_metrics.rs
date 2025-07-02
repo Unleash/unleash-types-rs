@@ -315,6 +315,8 @@ mod tests {
     fn client_metrics_with_impact_metrics_serialization() {
         let impact_metrics = vec![
             ImpactMetric {
+                environment: "development".into(),
+                app_name: "test-app".into(),
                 name: "labeled_counter".into(),
                 help: "with labels".into(),
                 r#type: "counter".into(),
