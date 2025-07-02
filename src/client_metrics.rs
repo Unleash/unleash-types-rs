@@ -182,6 +182,10 @@ pub struct MetricSample {
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ImpactMetric {
+    #[serde(skip)]
+    pub app_name: String,
+    #[serde(skip)]
+    pub environment: String,
     pub name: String,
     pub help: String,
     pub r#type: String,
