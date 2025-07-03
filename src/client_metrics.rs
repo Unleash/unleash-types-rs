@@ -204,7 +204,7 @@ impl MetricSample {
                 let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
                 sorted_entries.sort_by(|a, b| a.0.cmp(b.0));
                 sorted_entries.iter()
-                    .map(|(k, v)| format!("{}:{}", k, v))
+                    .map(|(k, v)| format!("{k}:{v}"))
                     .collect::<Vec<String>>()
                     .join(",")
             }
