@@ -181,15 +181,9 @@ pub struct MetricSample {
 
 impl PartialEq for MetricSample {
     fn eq(&self, other: &Self) -> bool {
-        const EPSILON: f64 = 1e-10;
+        let values_equal = (self.value - other.value).abs() < f64::EPSILON;
 
-        let values_equal = (self.value - other.value).abs() < EPSILON;
-
-        let labels_equal = match (&self.labels, &other.labels) {
-            (Some(self_labels), Some(other_labels)) => self_labels == other_labels,
-            (None, None) => true,
-            _ => false,
-        };
+        let labels_equal = &self.labels == &other.labels;
 
         values_equal && labels_equal
     }
@@ -224,7 +218,7 @@ pub enum MetricType {
 }
 
 impl FromStr for MetricType {
-    type Err = ();
+    type Err = std::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
@@ -237,7 +231,7 @@ impl FromStr for MetricType {
 
 impl From<&str> for MetricType {
     fn from(s: &str) -> Self {
-        MetricType::from_str(s).unwrap_or(MetricType::Unknown)
+        s.parse().expect("Failed to parse MetricType, this should never happen")
     }
 }
 
