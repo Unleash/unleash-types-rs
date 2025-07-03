@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
@@ -212,13 +213,51 @@ impl MetricSample {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum MetricType {
+    Counter,
+    Gauge,
+    #[serde(other)]
+    Unknown,
+}
+
+impl FromStr for MetricType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "counter" => Ok(MetricType::Counter),
+            "gauge" => Ok(MetricType::Gauge),
+            _ => Ok(MetricType::Unknown),
+        }
+    }
+}
+
+impl From<&str> for MetricType {
+    fn from(s: &str) -> Self {
+        MetricType::from_str(s).unwrap_or(MetricType::Unknown)
+    }
+}
+
+impl std::fmt::Display for MetricType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            MetricType::Counter => "counter",
+            MetricType::Gauge => "gauge",
+            MetricType::Unknown => "unknown",
+        })
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ImpactMetric {
     pub name: String,
     pub help: String,
-    pub r#type: String,
+    pub r#type: MetricType,
     pub samples: Vec<MetricSample>,
 }
 
@@ -248,7 +287,7 @@ impl Merge for ImpactMetricEnv {
     fn merge(self, other: ImpactMetricEnv) -> ImpactMetricEnv {
         let mut result = self;
         let mut samples_by_labels: HashMap<String, MetricSample> = HashMap::new();
-        let is_counter = result.impact_metric.r#type == "counter" && other.impact_metric.r#type == "counter";
+        let is_counter = result.impact_metric.r#type == MetricType::Counter && other.impact_metric.r#type == MetricType::Counter;
 
         for sample in &result.impact_metric.samples {
             let labels_key = sample.labels_to_key();
@@ -399,7 +438,7 @@ mod tests {
             ImpactMetric {
                 name: "labeled_counter".into(),
                 help: "with labels".into(),
-                r#type: "counter".into(),
+                r#type: MetricType::Counter,
                 samples: vec![
                     MetricSample {
                         value: 10.0,
@@ -927,7 +966,7 @@ mod clock_tests {
             impact_metric: ImpactMetric {
                 name: "test_counter".into(),
                 help: "Test counter metric".into(),
-                r#type: "counter".into(),
+                r#type: MetricType::Counter,
                 samples: vec![
                     MetricSample {
                         value: 10.0,
@@ -947,7 +986,7 @@ mod clock_tests {
             impact_metric: ImpactMetric {
                 name: "test_counter".into(),
                 help: "Test counter metric".into(),
-                r#type: "counter".into(),
+                r#type: MetricType::Counter,
                 samples: vec![
                     MetricSample {
                         value: 15.0,
@@ -968,7 +1007,7 @@ mod clock_tests {
         let expected_impact_metric = ImpactMetric {
             name: "test_counter".into(),
             help: "Test counter metric".into(),
-            r#type: "counter".into(),
+            r#type: MetricType::Counter,
             samples: vec![
                 MetricSample {
                     value: 25.0, // 10.0 + 15.0
@@ -997,7 +1036,7 @@ mod clock_tests {
             impact_metric: ImpactMetric {
                 name: "test_gauge".into(),
                 help: "Test gauge metric".into(),
-                r#type: "gauge".into(),
+                r#type: MetricType::Gauge,
                 samples: vec![
                     MetricSample {
                         value: 10.0,
@@ -1017,7 +1056,7 @@ mod clock_tests {
             impact_metric: ImpactMetric {
                 name: "test_gauge".into(),
                 help: "Test gauge metric".into(),
-                r#type: "gauge".into(),
+                r#type: MetricType::Gauge,
                 samples: vec![
                     MetricSample {
                         value: 15.0,
@@ -1038,7 +1077,7 @@ mod clock_tests {
         let expected_impact_metric = ImpactMetric {
             name: "test_gauge".into(),
             help: "Test gauge metric".into(),
-            r#type: "gauge".into(),
+            r#type: MetricType::Gauge,
             samples: vec![
                 MetricSample {
                     value: 15.0, // Last value from metric2
