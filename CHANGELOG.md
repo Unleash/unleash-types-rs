@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.18](https://github.com/Unleash/unleash-types-rs/compare/v0.15.17...v0.15.18) - 2025-07-08
+
+### 🐛 Bug Fixes
+- skip serializing client application projects if they're missing - Unleash wants it to be there or missing but not null ([#106](https://github.com/unleash/unleash-types-rs/issues/106)) (by @sighphyre) - #106
+
+### Dependency updates
+- bump serde_qs from 0.14.0 to 0.15.0 ([#91](https://github.com/unleash/unleash-types-rs/issues/91)) (by @dependabot[bot]) - #91
+
+### Contributors
+
+* @dependabot[bot]
+* @sighphyre
+
 ## [0.15.17](https://github.com/Unleash/unleash-types-rs/compare/v0.15.16...v0.15.17) - 2025-07-03
 
 ### 🚀 Features
