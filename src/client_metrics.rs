@@ -140,6 +140,7 @@ pub struct ClientApplication {
     pub app_name: String,
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub projects: Option<Vec<String>>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
