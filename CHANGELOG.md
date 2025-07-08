@@ -2,6 +2,88 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.17](https://github.com/Unleash/unleash-types-rs/compare/v0.15.16...v0.15.17) - 2025-07-03
+
+### 🚀 Features
+- improve impact metrics ([#104](https://github.com/unleash/unleash-types-rs/issues/104)) (by @kwasniew) - #104
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.16](https://github.com/Unleash/unleash-types-rs/compare/v0.15.15...v0.15.16) - 2025-07-02
+
+### 🚀 Features
+- Impact metrics per env ([#102](https://github.com/unleash/unleash-types-rs/issues/102)) (by @kwasniew) - #102
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.15](https://github.com/Unleash/unleash-types-rs/compare/v0.15.14...v0.15.15) - 2025-06-30
+
+### 🚀 Features
+- impact metrics ([#99](https://github.com/unleash/unleash-types-rs/issues/99)) (by @kwasniew) - #99
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.14](https://github.com/Unleash/unleash-types-rs/compare/v0.15.13...v0.15.14) - 2025-05-01
+
+### 🚀 Features
+- client application projects optional ([#96](https://github.com/unleash/unleash-types-rs/issues/96)) (by @kwasniew) - #96
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.13](https://github.com/Unleash/unleash-types-rs/compare/v0.15.12...v0.15.13) - 2025-04-30
+
+### 🚀 Features
+- client application projects ([#94](https://github.com/unleash/unleash-types-rs/issues/94)) (by @kwasniew) - #94
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.12](https://github.com/Unleash/unleash-types-rs/compare/v0.15.11...v0.15.12) - 2025-04-29
+
+### 🚀 Features
+- sdk type in metrics metadata ([#92](https://github.com/unleash/unleash-types-rs/issues/92)) (by @kwasniew) - #92
+
+### Contributors
+
+* @kwasniew
+
+## [0.15.11](https://github.com/Unleash/unleash-types-rs/compare/v0.15.10...v0.15.11) - 2025-04-08
+
+### 🚀 Features
+- looser frontend context deserialization to match unleash/api/frontend ([#87](https://github.com/unleash/unleash-types-rs/issues/87)) (by @daveleek) - #87
+- gate system clock access behind a feature flag ([#90](https://github.com/unleash/unleash-types-rs/issues/90)) (by @sighphyre) - #90
+
+### Dependency updates
+- bump actions/create-github-app-token from 1 to 2 ([#86](https://github.com/unleash/unleash-types-rs/issues/86)) (by @dependabot[bot]) - #86
+
+### ⚙️ Miscellaneous Tasks
+- bump dependencies ([#88](https://github.com/unleash/unleash-types-rs/issues/88)) (by @chriswk) - #88
+
+### Contributors
+
+* @daveleek
+* @sighphyre
+* @chriswk
+* @dependabot[bot]
+
+## [0.15.10](https://github.com/Unleash/unleash-types-rs/compare/v0.15.9...v0.15.10) - 2025-03-04
+
+### 🚀 Features
+- add connection_id for ClientApplication and ClientMetrics ([#81](https://github.com/Unleash/unleash-types-rs/pull/81)) (by @kwasniew) - #81
+
+### Contributors
+
+* @kwasniew
+
 ## [0.15.9](https://github.com/Unleash/unleash-types-rs/compare/v0.15.8...v0.15.9) - 2025-02-19
 
 ### 🚀 Features

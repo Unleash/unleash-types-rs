@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
@@ -101,6 +102,9 @@ pub struct ClientMetrics {
     pub bucket: MetricBucket,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
+    pub connection_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub impact_metrics: Option<Vec<ImpactMetric>>,
     #[serde(flatten)]
     pub metadata: MetricsMetadata,
 }
@@ -136,12 +140,23 @@ pub struct ClientApplication {
     pub app_name: String,
     pub connect_via: Option<Vec<ConnectVia>>,
     pub environment: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub projects: Option<Vec<String>>,
     pub instance_id: Option<String>,
+    pub connection_id: Option<String>,
     pub interval: u32,
     pub started: DateTime<Utc>,
     pub strategies: Vec<String>,
     #[serde(flatten)]
     pub metadata: MetricsMetadata,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum SdkType {
+    Frontend,
+    Backend
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
@@ -150,23 +165,165 @@ pub struct ClientApplication {
 #[derive(Default)]
 pub struct MetricsMetadata {
     pub sdk_version: Option<String>,
+    pub sdk_type: Option<SdkType>,
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct MetricSample {
+    pub value: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<HashMap<String, String>>,
+}
+
+impl PartialEq for MetricSample {
+    fn eq(&self, other: &Self) -> bool {
+        let values_equal = (self.value - other.value).abs() < f64::EPSILON;
+
+        let labels_equal = &self.labels == &other.labels;
+
+        values_equal && labels_equal
+    }
+}
+
+impl Eq for MetricSample {}
+
+impl MetricSample {
+    pub fn labels_to_key(&self) -> String {
+        match &self.labels {
+            Some(labels_map) => {
+                let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
+                sorted_entries.sort_by(|a, b| a.0.cmp(b.0));
+                sorted_entries.iter()
+                    .map(|(k, v)| format!("{k}:{v}"))
+                    .collect::<Vec<String>>()
+                    .join(",")
+            }
+            None => "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum MetricType {
+    Counter,
+    Gauge,
+    #[serde(other)]
+    Unknown,
+}
+
+impl FromStr for MetricType {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "counter" => Ok(MetricType::Counter),
+            "gauge" => Ok(MetricType::Gauge),
+            _ => Ok(MetricType::Unknown),
+        }
+    }
+}
+
+impl From<&str> for MetricType {
+    fn from(s: &str) -> Self {
+        s.parse().expect("Failed to parse MetricType, this should never happen")
+    }
+}
+
+impl std::fmt::Display for MetricType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            MetricType::Counter => "counter",
+            MetricType::Gauge => "gauge",
+            MetricType::Unknown => "unknown",
+        })
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct ImpactMetric {
+    pub name: String,
+    pub help: String,
+    pub r#type: MetricType,
+    pub samples: Vec<MetricSample>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct ImpactMetricEnv {
+    #[serde(flatten)]
+    pub impact_metric: ImpactMetric,
+    #[serde(skip)]
+    pub app_name: String,
+    #[serde(skip)]
+    pub environment: String,
+}
+
+impl ImpactMetricEnv {
+    pub fn new(impact_metric: ImpactMetric, app_name: String, environment: String) -> Self {
+        Self {
+            impact_metric,
+            app_name,
+            environment,
+        }
+    }
+}
+
+impl Merge for ImpactMetricEnv {
+    fn merge(self, other: ImpactMetricEnv) -> ImpactMetricEnv {
+        let mut result = self;
+        let mut samples_by_labels: HashMap<String, MetricSample> = HashMap::new();
+        let is_counter = result.impact_metric.r#type == MetricType::Counter && other.impact_metric.r#type == MetricType::Counter;
+
+        for sample in &result.impact_metric.samples {
+            let labels_key = sample.labels_to_key();
+            samples_by_labels.insert(labels_key, sample.clone());
+        }
+
+        for sample in other.impact_metric.samples {
+            let labels_key = sample.labels_to_key();
+            if is_counter {
+                if let Some(existing_sample) = samples_by_labels.get_mut(&labels_key) {
+                    existing_sample.value += sample.value;
+                } else {
+                    samples_by_labels.insert(labels_key, sample);
+                }
+            } else {
+                // For non-counter metrics (like gauge), last value wins
+                samples_by_labels.insert(labels_key, sample);
+            }
+        }
+
+        result.impact_metric.samples = samples_by_labels.into_values().collect();
+        result
+    }
+}
+
 impl ClientApplication {
+    #[cfg(feature = "wall-clock")]
     pub fn new(app_name: &str, interval: u32) -> Self {
         Self {
             app_name: app_name.into(),
             connect_via: Some(vec![]),
             environment: None,
+            projects: Some(vec![]),
             instance_id: None,
+            connection_id: None,
             interval,
             started: Utc::now(),
             strategies: vec![],
             metadata: MetricsMetadata {
                 sdk_version: None,
+                sdk_type: None,
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
@@ -221,16 +378,35 @@ impl Merge for ClientApplication {
             })
             .or(other.connect_via.clone());
 
+        let merged_projects: Option<Vec<String>> = match (self.projects, other.projects) {
+            (Some(self_projects), Some(other_projects)) => {
+                let mut projects: Vec<String> = self_projects
+                    .into_iter()
+                    .chain(other_projects)
+                    .collect::<HashSet<String>>()
+                    .into_iter()
+                    .collect();
+                projects.sort();
+                Some(projects)
+            },
+            (Some(projects), None) => Some(projects),
+            (None, Some(projects)) => Some(projects),
+            (None, None) => None,
+        };
+
         ClientApplication {
             app_name: self.app_name,
             environment: self.environment.or(other.environment),
+            projects: merged_projects,
             instance_id: self.instance_id.or(other.instance_id),
+            connection_id: self.connection_id.or(other.connection_id),
             interval: self.interval,
             started: self.started,
             strategies: merged_strategies,
             connect_via: merged_connected_via,
             metadata: MetricsMetadata {
                 sdk_version: self.metadata.sdk_version.or(other.metadata.sdk_version),
+                sdk_type: self.metadata.sdk_type.or(other.metadata.sdk_type),
                 yggdrasil_version: self
                     .metadata
                     .yggdrasil_version
@@ -247,9 +423,51 @@ impl Merge for ClientApplication {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{Duration, Utc};
+    use chrono::Utc;
 
     use super::*;
+
+    #[test]
+    fn client_metrics_with_impact_metrics_serialization() {
+        let impact_metrics = vec![
+            ImpactMetric {
+                name: "labeled_counter".into(),
+                help: "with labels".into(),
+                r#type: MetricType::Counter,
+                samples: vec![
+                    MetricSample {
+                        value: 10.0,
+                        labels: Some(HashMap::from([("foo".into(), "bar".into())])),
+                    },
+                ],
+            },
+        ];
+
+        let metrics = ClientMetrics {
+            app_name: "test-name".into(),
+            environment: Some("test-env".into()),
+            instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
+            impact_metrics: Some(impact_metrics.clone()),
+            bucket: MetricBucket {
+                start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                toggles: HashMap::new(),
+            },
+            metadata: MetricsMetadata {
+                sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
+                yggdrasil_version: None,
+                platform_name: Some("rustc".into()),
+                platform_version: Some("1.7.9".into()),
+            },
+        };
+
+        let json_string = serde_json::to_string(&metrics).unwrap();
+        let deserialized: ClientMetrics = serde_json::from_str(&json_string).unwrap();
+
+        assert_eq!(deserialized.impact_metrics, Some(impact_metrics));
+    }
 
     #[test]
     pub fn can_increment_counts() {
@@ -299,231 +517,6 @@ mod tests {
         assert_eq!(red_count, &1);
         assert_eq!(green_count, &3);
         assert_eq!(disabled_count, &1);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_should_eliminate_duplicate_strategies() {
-        let mut demo_data_1 = ClientApplication::new("demo", 15000);
-        let mut demo_data_2 = ClientApplication::new("demo", 15000);
-        demo_data_1.add_strategies(vec!["default".into(), "gradualRollout".into()]);
-        demo_data_2.add_strategies(vec!["default".into(), "randomRollout".into()]);
-        let demo_data_3 = demo_data_1.merge(demo_data_2);
-        assert_eq!(demo_data_3.strategies.len(), 3);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_should_use_set_values() {
-        let demo_data_orig = ClientApplication::new("demo", 15000);
-        let demo_data_with_more_data = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("development".into()),
-            instance_id: Some("instance_id".into()),
-            started: Utc::now(),
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        // Cloning orig here, to avoid the destructive merge preventing us from testing
-        let merged = demo_data_orig.clone().merge(demo_data_with_more_data);
-        assert_eq!(merged.interval, demo_data_orig.interval);
-        assert_eq!(merged.environment, Some("development".into()));
-        assert_eq!(
-            merged.metadata.sdk_version,
-            Some("unleash-client-java:7.1.0".into())
-        );
-        assert_eq!(merged.instance_id, Some("instance_id".into()));
-        assert_eq!(merged.started, demo_data_orig.started);
-        assert_eq!(merged.strategies.len(), 2);
-    }
-
-    #[test]
-    pub fn merging_two_client_applications_prioritizes_left_hand_side() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-
-        let left = demo_data_2.clone().merge(demo_data_1.clone());
-        let right = demo_data_1.merge(demo_data_2);
-
-        assert_eq!(left, right);
-    }
-
-    #[test]
-    pub fn can_connect_via_new_application() {
-        let demo_data = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started: Utc::now(),
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-        let connected_via = demo_data.connect_via("unleash-edge", "edge-id-1");
-        assert_eq!(
-            connected_via.connect_via,
-            Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "edge-id-1".into(),
-            }]),
-        )
-    }
-
-    #[test]
-    pub fn can_merge_connected_via() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "1".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "2".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-
-        let merged = demo_data_1.merge(demo_data_2);
-        let connections = merged.connect_via.unwrap();
-        assert_eq!(connections.len(), 2);
-        assert_eq!(
-            connections,
-            vec![
-                ConnectVia {
-                    app_name: "unleash-edge".into(),
-                    instance_id: "1".into(),
-                },
-                ConnectVia {
-                    app_name: "unleash-edge".into(),
-                    instance_id: "2".into(),
-                }
-            ]
-        )
-    }
-
-    #[test]
-    pub fn can_merge_connected_via_where_one_side_is_none() {
-        let started = Utc::now();
-        let demo_data_1 = ClientApplication {
-            app_name: "demo".into(),
-            interval: 15500,
-            started,
-            strategies: vec!["default".into(), "gradualRollout".into()],
-            metadata: MetricsMetadata {
-                sdk_version: Some("unleash-client-java:7.1.0".into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let demo_data_2 = ClientApplication {
-            connect_via: Some(vec![ConnectVia {
-                app_name: "unleash-edge".into(),
-                instance_id: "2".into(),
-            }]),
-            app_name: "demo".into(),
-            interval: 15500,
-            environment: Some("production".into()),
-            started,
-            strategies: vec!["default".into(), "CustomStrategy".into()],
-            ..Default::default()
-        };
-        let merged = demo_data_1.clone().merge(demo_data_2.clone());
-        assert_eq!(demo_data_2.connect_via, merged.connect_via);
-        let reverse_merge = demo_data_2.clone().merge(demo_data_1);
-        assert_eq!(demo_data_2.connect_via, reverse_merge.connect_via);
-    }
-
-    #[test]
-    pub fn can_have_client_metrics_env_from_metrics_bucket() {
-        let start = Utc::now();
-        let mut stats_feature_one = ToggleStats::default();
-        stats_feature_one.count_variant("red");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.count_variant("green");
-        stats_feature_one.variant_disabled();
-        let mut stats_feature_two = ToggleStats::default();
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("red");
-        stats_feature_two.count_variant("green");
-        stats_feature_two.yes();
-        stats_feature_two.yes();
-        stats_feature_two.yes();
-        stats_feature_two.variant_disabled();
-        let mut map = HashMap::new();
-        map.insert("feature_one".to_string(), stats_feature_one);
-        map.insert("feature_two".to_string(), stats_feature_two);
-        let bucket = MetricBucket {
-            start,
-            stop: start + Duration::minutes(50),
-            toggles: map,
-        };
-        let client_metrics_env = from_bucket_app_name_and_env(
-            bucket,
-            "unleash_edge_metrics".into(),
-            "development".into(),
-            MetricsMetadata {
-                ..Default::default()
-            },
-        );
-        assert_eq!(client_metrics_env.len(), 2);
-        let feature_one_metrics = client_metrics_env
-            .clone()
-            .into_iter()
-            .find(|e| e.feature_name == "feature_one")
-            .unwrap();
-
-        assert_eq!(feature_one_metrics.yes, 4);
-        assert_eq!(feature_one_metrics.no, 1);
-
-        let feature_two_metrics = client_metrics_env
-            .into_iter()
-            .find(|e| e.feature_name == "feature_two")
-            .unwrap();
-
-        assert_eq!(feature_two_metrics.yes, 7);
-        assert_eq!(feature_two_metrics.no, 1);
     }
 
     #[test]
@@ -592,6 +585,7 @@ mod tests {
         {
             "appName": "some-app",
             "environment": "some-instance",
+            "projects": ["default"],
             "instanceId": "something",
             "interval": 15000,
             "started": "1867-11-07T12:00:00Z",
@@ -635,7 +629,9 @@ mod tests {
             },
             "environment": "test-env",
             "instanceId": "test-instance-id",
+            "connectionId": "test-connection-id",
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
@@ -648,6 +644,8 @@ mod tests {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
             instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
+            impact_metrics: None,
             bucket: MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
@@ -655,6 +653,7 @@ mod tests {
             },
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
@@ -672,11 +671,14 @@ mod tests {
             "appName": "test-name",
             "connectVia": null,
             "environment": "test-env",
+            "projects": ["default"],
             "instanceId": "test-instance-id",
+            "connectionId": "test-connection-id",
             "interval": 15000,
             "started": "1970-01-01T00:16:40Z",
             "strategies": [],
             "sdkVersion": "rust-1.3.0",
+            "sdkType": "backend",
             "yggdrasilVersion": null,
             "platformName": "rustc",
             "platformVersion": "1.7.9"
@@ -688,9 +690,12 @@ mod tests {
         let metrics = ClientApplication {
             app_name: "test-name".into(),
             environment: Some("test-env".into()),
+            projects: Some(vec!["default".into()]),
             instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
+                sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
@@ -703,5 +708,390 @@ mod tests {
 
         let json_string = serde_json::to_string(&metrics).unwrap();
         assert_eq!(json_string, expected_registration);
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "wall-clock")]
+mod clock_tests {
+    use chrono::{Duration, Utc};
+
+    use super::*;
+
+
+    #[test]
+    pub fn can_have_client_metrics_env_from_metrics_bucket() {
+        let start = Utc::now();
+        let mut stats_feature_one = ToggleStats::default();
+        stats_feature_one.count_variant("red");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.count_variant("green");
+        stats_feature_one.variant_disabled();
+        let mut stats_feature_two = ToggleStats::default();
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("red");
+        stats_feature_two.count_variant("green");
+        stats_feature_two.yes();
+        stats_feature_two.yes();
+        stats_feature_two.yes();
+        stats_feature_two.variant_disabled();
+        let mut map = HashMap::new();
+        map.insert("feature_one".to_string(), stats_feature_one);
+        map.insert("feature_two".to_string(), stats_feature_two);
+        let bucket = MetricBucket {
+            start,
+            stop: start + Duration::minutes(50),
+            toggles: map,
+        };
+        let client_metrics_env = from_bucket_app_name_and_env(
+            bucket,
+            "unleash_edge_metrics".into(),
+            "development".into(),
+            MetricsMetadata {
+                ..Default::default()
+            },
+        );
+        assert_eq!(client_metrics_env.len(), 2);
+        let feature_one_metrics = client_metrics_env
+            .clone()
+            .into_iter()
+            .find(|e| e.feature_name == "feature_one")
+            .unwrap();
+
+        assert_eq!(feature_one_metrics.yes, 4);
+        assert_eq!(feature_one_metrics.no, 1);
+
+        let feature_two_metrics = client_metrics_env
+            .into_iter()
+            .find(|e| e.feature_name == "feature_two")
+            .unwrap();
+
+        assert_eq!(feature_two_metrics.yes, 7);
+        assert_eq!(feature_two_metrics.no, 1);
+    }
+
+    #[test]
+    pub fn can_connect_via_new_application() {
+        let demo_data = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started: Utc::now(),
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+        let connected_via = demo_data.connect_via("unleash-edge", "edge-id-1");
+        assert_eq!(
+            connected_via.connect_via,
+            Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "edge-id-1".into(),
+            }]),
+        )
+    }
+
+    #[test]
+    pub fn can_merge_connected_via_where_one_side_is_none() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "2".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+        let merged = demo_data_1.clone().merge(demo_data_2.clone());
+        assert_eq!(demo_data_2.connect_via, merged.connect_via);
+        let reverse_merge = demo_data_2.clone().merge(demo_data_1);
+        assert_eq!(demo_data_2.connect_via, reverse_merge.connect_via);
+    }
+
+    #[test]
+    pub fn can_merge_connected_via() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "1".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            connect_via: Some(vec![ConnectVia {
+                app_name: "unleash-edge".into(),
+                instance_id: "2".into(),
+            }]),
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+
+        let merged = demo_data_1.merge(demo_data_2);
+        let connections = merged.connect_via.unwrap();
+        assert_eq!(connections.len(), 2);
+        assert_eq!(
+            connections,
+            vec![
+                ConnectVia {
+                    app_name: "unleash-edge".into(),
+                    instance_id: "1".into(),
+                },
+                ConnectVia {
+                    app_name: "unleash-edge".into(),
+                    instance_id: "2".into(),
+                }
+            ]
+        )
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_prioritizes_left_hand_side() {
+        let started = Utc::now();
+        let demo_data_1 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            started,
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let demo_data_2 = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("production".into()),
+            started,
+            strategies: vec!["default".into(), "CustomStrategy".into()],
+            ..Default::default()
+        };
+
+        let left = demo_data_2.clone().merge(demo_data_1.clone());
+        let right = demo_data_1.merge(demo_data_2);
+
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_should_use_set_values() {
+        let demo_data_orig = ClientApplication::new("demo", 15000);
+        let demo_data_with_more_data = ClientApplication {
+            app_name: "demo".into(),
+            interval: 15500,
+            environment: Some("development".into()),
+            instance_id: Some("instance_id".into()),
+            connection_id: Some("connection_id".into()),
+            started: Utc::now(),
+            strategies: vec!["default".into(), "gradualRollout".into()],
+            metadata: MetricsMetadata {
+                sdk_version: Some("unleash-client-java:7.1.0".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        // Cloning orig here, to avoid the destructive merge preventing us from testing
+        let merged = demo_data_orig.clone().merge(demo_data_with_more_data);
+        assert_eq!(merged.interval, demo_data_orig.interval);
+        assert_eq!(merged.environment, Some("development".into()));
+        assert_eq!(
+            merged.metadata.sdk_version,
+            Some("unleash-client-java:7.1.0".into())
+        );
+        assert_eq!(merged.instance_id, Some("instance_id".into()));
+        assert_eq!(merged.connection_id, Some("connection_id".into()));
+        assert_eq!(merged.started, demo_data_orig.started);
+        assert_eq!(merged.strategies.len(), 2);
+    }
+
+    #[test]
+    pub fn merging_two_client_applications_should_eliminate_duplicate_strategies() {
+        let mut demo_data_1 = ClientApplication::new("demo", 15000);
+        let mut demo_data_2 = ClientApplication::new("demo", 15000);
+        demo_data_1.add_strategies(vec!["default".into(), "gradualRollout".into()]);
+        demo_data_2.add_strategies(vec!["default".into(), "randomRollout".into()]);
+        let demo_data_3 = demo_data_1.merge(demo_data_2);
+        assert_eq!(demo_data_3.strategies.len(), 3);
+    }
+
+    fn sort_samples_by_labels(mut impact_metric: ImpactMetric) -> ImpactMetric {
+        impact_metric.samples.sort_by(|a, b| {
+            let a_key = a.labels_to_key();
+            let b_key = b.labels_to_key();
+            a_key.cmp(&b_key)
+        });
+        impact_metric
+    }
+
+    #[test]
+    pub fn merging_impact_metric_env_counter_type_adds_values() {
+        let metric1 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_counter".into(),
+                help: "Test counter metric".into(),
+                r#type: MetricType::Counter,
+                samples: vec![
+                    MetricSample {
+                        value: 10.0,
+                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    },
+                    MetricSample {
+                        value: 20.0,
+                        labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                    },
+                ],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        let metric2 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_counter".into(),
+                help: "Test counter metric".into(),
+                r#type: MetricType::Counter,
+                samples: vec![
+                    MetricSample {
+                        value: 15.0,
+                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    },
+                    MetricSample {
+                        value: 25.0,
+                        labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                    },
+                ],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        let merged = metric1.merge(metric2);
+
+        let expected_impact_metric = ImpactMetric {
+            name: "test_counter".into(),
+            help: "Test counter metric".into(),
+            r#type: MetricType::Counter,
+            samples: vec![
+                MetricSample {
+                    value: 25.0, // 10.0 + 15.0
+                    labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                },
+                MetricSample {
+                    value: 20.0, // Only in metric1
+                    labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                },
+                MetricSample {
+                    value: 25.0, // Only in metric2
+                    labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                },
+            ],
+        };
+
+        let sorted_merged = sort_samples_by_labels(merged.impact_metric);
+        let sorted_expected = sort_samples_by_labels(expected_impact_metric);
+
+        assert_eq!(sorted_merged, sorted_expected);
+    }
+
+    #[test]
+    pub fn merging_impact_metric_env_gauge_type_uses_last_value() {
+        let metric1 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_gauge".into(),
+                help: "Test gauge metric".into(),
+                r#type: MetricType::Gauge,
+                samples: vec![
+                    MetricSample {
+                        value: 10.0,
+                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    },
+                    MetricSample {
+                        value: 20.0,
+                        labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                    },
+                ],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        let metric2 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_gauge".into(),
+                help: "Test gauge metric".into(),
+                r#type: MetricType::Gauge,
+                samples: vec![
+                    MetricSample {
+                        value: 15.0,
+                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    },
+                    MetricSample {
+                        value: 25.0,
+                        labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                    },
+                ],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        let merged = metric1.merge(metric2);
+
+        let expected_impact_metric = ImpactMetric {
+            name: "test_gauge".into(),
+            help: "Test gauge metric".into(),
+            r#type: MetricType::Gauge,
+            samples: vec![
+                MetricSample {
+                    value: 15.0, // Last value from metric2
+                    labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                },
+                MetricSample {
+                    value: 20.0, // Only in metric1
+                    labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                },
+                MetricSample {
+                    value: 25.0, // Only in metric2
+                    labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                },
+            ],
+        };
+
+        let sorted_merged = sort_samples_by_labels(merged.impact_metric);
+        let sorted_expected = sort_samples_by_labels(expected_impact_metric);
+
+        assert_eq!(sorted_merged, sorted_expected);
     }
 }
