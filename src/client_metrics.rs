@@ -197,14 +197,21 @@ impl MetricSample {
         match &self.labels {
             Some(labels_map) => {
                 let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
-                sorted_entries.sort_by(|a, b| a.0.cmp(b.0));
-                sorted_entries
-                    .iter()
-                    .map(|(k, v)| format!("{k}:{v}"))
-                    .collect::<Vec<String>>()
-                    .join(",")
+                sorted_entries.sort_unstable_by(|a, b| a.0.cmp(b.0));
+
+                let mut key = String::with_capacity(sorted_entries.len() * 16);
+
+                for (i, (k, v)) in sorted_entries.iter().enumerate() {
+                    if i > 0 {
+                        key.push(',');
+                    }
+                    key.push_str(k);
+                    key.push(':');
+                    key.push_str(v);
+                }
+                key
             }
-            None => "".to_string(),
+            None => String::new(),
         }
     }
 }
