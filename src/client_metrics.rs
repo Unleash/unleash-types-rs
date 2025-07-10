@@ -156,7 +156,7 @@ pub struct ClientApplication {
 #[serde(rename_all = "lowercase")]
 pub enum SdkType {
     Frontend,
-    Backend
+    Backend,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Builder)]
@@ -198,7 +198,8 @@ impl MetricSample {
             Some(labels_map) => {
                 let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
                 sorted_entries.sort_by(|a, b| a.0.cmp(b.0));
-                sorted_entries.iter()
+                sorted_entries
+                    .iter()
                     .map(|(k, v)| format!("{k}:{v}"))
                     .collect::<Vec<String>>()
                     .join(",")
@@ -232,17 +233,22 @@ impl FromStr for MetricType {
 
 impl From<&str> for MetricType {
     fn from(s: &str) -> Self {
-        s.parse().expect("Failed to parse MetricType, this should never happen")
+        s.parse()
+            .expect("Failed to parse MetricType, this should never happen")
     }
 }
 
 impl std::fmt::Display for MetricType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            MetricType::Counter => "counter",
-            MetricType::Gauge => "gauge",
-            MetricType::Unknown => "unknown",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                MetricType::Counter => "counter",
+                MetricType::Gauge => "gauge",
+                MetricType::Unknown => "unknown",
+            }
+        )
     }
 }
 
@@ -279,14 +285,14 @@ impl ImpactMetricEnv {
 }
 
 impl Merge for ImpactMetricEnv {
-    fn merge(self, other: ImpactMetricEnv) -> ImpactMetricEnv {
-        let mut result = self;
+    fn merge(mut self, other: ImpactMetricEnv) -> ImpactMetricEnv {
         let mut samples_by_labels: HashMap<String, MetricSample> = HashMap::new();
-        let is_counter = result.impact_metric.r#type == MetricType::Counter && other.impact_metric.r#type == MetricType::Counter;
+        let is_counter = self.impact_metric.r#type == MetricType::Counter
+            && other.impact_metric.r#type == MetricType::Counter;
 
-        for sample in &result.impact_metric.samples {
+        for sample in self.impact_metric.samples.drain(..) {
             let labels_key = sample.labels_to_key();
-            samples_by_labels.insert(labels_key, sample.clone());
+            samples_by_labels.insert(labels_key, sample);
         }
 
         for sample in other.impact_metric.samples {
@@ -303,8 +309,8 @@ impl Merge for ImpactMetricEnv {
             }
         }
 
-        result.impact_metric.samples = samples_by_labels.into_values().collect();
-        result
+        self.impact_metric.samples = samples_by_labels.into_values().collect();
+        self
     }
 }
 
@@ -388,7 +394,7 @@ impl Merge for ClientApplication {
                     .collect();
                 projects.sort();
                 Some(projects)
-            },
+            }
             (Some(projects), None) => Some(projects),
             (None, Some(projects)) => Some(projects),
             (None, None) => None,
@@ -429,19 +435,15 @@ mod tests {
 
     #[test]
     fn client_metrics_with_impact_metrics_serialization() {
-        let impact_metrics = vec![
-            ImpactMetric {
-                name: "labeled_counter".into(),
-                help: "with labels".into(),
-                r#type: MetricType::Counter,
-                samples: vec![
-                    MetricSample {
-                        value: 10.0,
-                        labels: Some(HashMap::from([("foo".into(), "bar".into())])),
-                    },
-                ],
-            },
-        ];
+        let impact_metrics = vec![ImpactMetric {
+            name: "labeled_counter".into(),
+            help: "with labels".into(),
+            r#type: MetricType::Counter,
+            samples: vec![MetricSample {
+                value: 10.0,
+                labels: Some(HashMap::from([("foo".into(), "bar".into())])),
+            }],
+        }];
 
         let metrics = ClientMetrics {
             app_name: "test-name".into(),
@@ -717,7 +719,6 @@ mod clock_tests {
     use chrono::{Duration, Utc};
 
     use super::*;
-
 
     #[test]
     pub fn can_have_client_metrics_env_from_metrics_bucket() {
