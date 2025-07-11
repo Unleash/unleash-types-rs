@@ -184,7 +184,7 @@ impl PartialEq for MetricSample {
     fn eq(&self, other: &Self) -> bool {
         let values_equal = (self.value - other.value).abs() < f64::EPSILON;
 
-        let labels_equal = &self.labels == &other.labels;
+        let labels_equal = self.labels == other.labels;
 
         values_equal && labels_equal
     }
