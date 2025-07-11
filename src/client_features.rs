@@ -133,7 +133,7 @@ where
                     } else {
                         Some((k, s))
                     }
-                },
+                }
                 Some(Value::Number(n)) => Some((k, n.to_string())),
                 Some(Value::Bool(b)) => Some((k, b.to_string())),
                 _ => None,

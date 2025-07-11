@@ -33,6 +33,8 @@ jobs:
           rustup show
       - name: Cache
         uses: Swatinem/rust-cache@v2
+      - name: Check formatting with cargo fmt
+        run: cargo fmt --all -- --check
       - name: Install required cargo packages for reporting format
         run: cargo install cargo-tarpaulin
       - name: Test without default features
