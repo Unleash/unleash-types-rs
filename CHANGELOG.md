@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.19](https://github.com/Unleash/unleash-types-rs/compare/v0.15.18...v0.15.19) - 2025-07-11
+
+### ⚙️ Miscellaneous Tasks
+- add formatter ([#108](https://github.com/unleash/unleash-types-rs/issues/108)) (by @sighphyre) - #108
+
+### Contributors
+
+* @sighphyre
+
 ## [0.15.18](https://github.com/Unleash/unleash-types-rs/compare/v0.15.17...v0.15.18) - 2025-07-08
 
 ### 🐛 Bug Fixes
