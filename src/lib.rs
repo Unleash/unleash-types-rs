@@ -7,6 +7,10 @@ pub trait Merge {
     fn merge(self, other: Self) -> Self;
 }
 
+pub trait MergeMut {
+    fn merge(&mut self, other: Self);
+}
+
 pub trait Upsert {
     /// If same entry exists in both self and other, should keep the one in other, if entry only exists in one, keep it.
     fn upsert(self, other: Self) -> Self;

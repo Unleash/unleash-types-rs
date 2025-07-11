@@ -1,11 +1,14 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::{collections::HashMap, hint::black_box};
+use std::{
+    collections::{BTreeMap, HashMap},
+    hint::black_box,
+};
 use unleash_types::{
     client_metrics::{ImpactMetric, ImpactMetricEnv, MetricSample, MetricType},
-    Merge,
+    Merge, MergeMut,
 };
 
-fn generate_labels(start: usize, end: usize) -> HashMap<String, String> {
+fn generate_labels(start: usize, end: usize) -> BTreeMap<String, String> {
     (start..end)
         .map(|i| (format!("label_{}", i), format!("value_{}", i)))
         .collect()
@@ -54,7 +57,7 @@ pub fn bench_merge(c: &mut Criterion) {
 
     c.bench_function("labels_to_key", |b| {
         b.iter(|| {
-            let first_clone = first.clone();
+            let mut first_clone = first.clone();
             let second_clone = second.clone();
             black_box(first_clone.merge(second_clone));
         })
