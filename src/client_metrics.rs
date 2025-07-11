@@ -312,7 +312,7 @@ impl MergeMut for ImpactMetricEnv {
                     if is_counter {
                         prev.value += sample.value;
                     } else {
-	                // For non-counter metrics (like gauge), last value wins
+                        // For non-counter metrics (like gauge), last value wins
                         prev = sample;
                     }
                 } else {

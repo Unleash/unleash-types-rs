@@ -1,11 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::{
-    collections::{BTreeMap, HashMap},
-    hint::black_box,
-};
+use std::{collections::BTreeMap, hint::black_box};
 use unleash_types::{
     client_metrics::{ImpactMetric, ImpactMetricEnv, MetricSample, MetricType},
-    Merge, MergeMut,
+    MergeMut,
 };
 
 fn generate_labels(start: usize, end: usize) -> BTreeMap<String, String> {
