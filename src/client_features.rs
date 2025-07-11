@@ -712,9 +712,9 @@ mod tests {
         assert_eq!(context.user_id.unwrap(), "123123");
         assert_eq!(context.session_id.unwrap(), "false");
         assert_eq!(context.app_name.unwrap(), "name");
-        assert_eq!(context.current_time.is_none(), true);
-        assert_eq!(context.environment.is_none(), true);
-        assert_eq!(context.remote_address.is_none(), true);
+        assert!(context.current_time.is_none());
+        assert!(context.environment.is_none());
+        assert!(context.remote_address.is_none());
         assert_eq!(
             context
                 .properties

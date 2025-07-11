@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
@@ -8,7 +8,7 @@ use std::str::FromStr;
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
-use crate::Merge;
+use crate::{Merge, MergeMut};
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
@@ -177,14 +177,14 @@ pub struct MetricsMetadata {
 pub struct MetricSample {
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub labels: Option<HashMap<String, String>>,
+    pub labels: Option<BTreeMap<String, String>>,
 }
 
 impl PartialEq for MetricSample {
     fn eq(&self, other: &Self) -> bool {
         let values_equal = (self.value - other.value).abs() < f64::EPSILON;
 
-        let labels_equal = &self.labels == &other.labels;
+        let labels_equal = self.labels == other.labels;
 
         values_equal && labels_equal
     }
@@ -197,14 +197,21 @@ impl MetricSample {
         match &self.labels {
             Some(labels_map) => {
                 let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
-                sorted_entries.sort_by(|a, b| a.0.cmp(b.0));
-                sorted_entries
-                    .iter()
-                    .map(|(k, v)| format!("{k}:{v}"))
-                    .collect::<Vec<String>>()
-                    .join(",")
+                sorted_entries.sort_unstable_by(|a, b| a.0.cmp(b.0));
+
+                let mut key = String::with_capacity(sorted_entries.len() * 16);
+
+                for (i, (k, v)) in sorted_entries.iter().enumerate() {
+                    if i > 0 {
+                        key.push(',');
+                    }
+                    key.push_str(k);
+                    key.push(':');
+                    key.push_str(v);
+                }
+                key
             }
-            None => "".to_string(),
+            None => String::new(),
         }
     }
 }
@@ -284,34 +291,39 @@ impl ImpactMetricEnv {
     }
 }
 
-impl Merge for ImpactMetricEnv {
-    fn merge(self, other: ImpactMetricEnv) -> ImpactMetricEnv {
-        let mut result = self;
-        let mut samples_by_labels: HashMap<String, MetricSample> = HashMap::new();
-        let is_counter = result.impact_metric.r#type == MetricType::Counter
-            && other.impact_metric.r#type == MetricType::Counter;
+impl MergeMut for ImpactMetricEnv {
+    fn merge(&mut self, other: ImpactMetricEnv) {
+        let is_counter = self.impact_metric.r#type == MetricType::Counter;
 
-        for sample in &result.impact_metric.samples {
-            let labels_key = sample.labels_to_key();
-            samples_by_labels.insert(labels_key, sample.clone());
-        }
+        self.impact_metric
+            .samples
+            .extend(other.impact_metric.samples);
+        self.impact_metric
+            .samples
+            .sort_by(|a, b| a.labels.cmp(&b.labels));
 
-        for sample in other.impact_metric.samples {
-            let labels_key = sample.labels_to_key();
-            if is_counter {
-                if let Some(existing_sample) = samples_by_labels.get_mut(&labels_key) {
-                    existing_sample.value += sample.value;
+        let old_samples = std::mem::take(&mut self.impact_metric.samples);
+        let mut deduped = Vec::with_capacity(old_samples.len());
+        let mut iter = old_samples.into_iter();
+
+        if let Some(mut prev) = iter.next() {
+            for sample in iter {
+                if sample.labels == prev.labels {
+                    if is_counter {
+                        prev.value += sample.value;
+                    } else {
+                        // For non-counter metrics (like gauge), last value wins
+                        prev = sample;
+                    }
                 } else {
-                    samples_by_labels.insert(labels_key, sample);
+                    deduped.push(prev);
+                    prev = sample;
                 }
-            } else {
-                // For non-counter metrics (like gauge), last value wins
-                samples_by_labels.insert(labels_key, sample);
             }
+            deduped.push(prev);
         }
 
-        result.impact_metric.samples = samples_by_labels.into_values().collect();
-        result
+        self.impact_metric.samples = deduped;
     }
 }
 
@@ -442,7 +454,7 @@ mod tests {
             r#type: MetricType::Counter,
             samples: vec![MetricSample {
                 value: 10.0,
-                labels: Some(HashMap::from([("foo".into(), "bar".into())])),
+                labels: Some(BTreeMap::from([("foo".into(), "bar".into())])),
             }],
         }];
 
@@ -959,7 +971,7 @@ mod clock_tests {
 
     #[test]
     pub fn merging_impact_metric_env_counter_type_adds_values() {
-        let metric1 = ImpactMetricEnv {
+        let mut metric1 = ImpactMetricEnv {
             impact_metric: ImpactMetric {
                 name: "test_counter".into(),
                 help: "Test counter metric".into(),
@@ -967,11 +979,11 @@ mod clock_tests {
                 samples: vec![
                     MetricSample {
                         value: 10.0,
-                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                        labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                     },
                     MetricSample {
                         value: 20.0,
-                        labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                        labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
                     },
                 ],
             },
@@ -987,11 +999,11 @@ mod clock_tests {
                 samples: vec![
                     MetricSample {
                         value: 15.0,
-                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                        labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                     },
                     MetricSample {
                         value: 25.0,
-                        labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                        labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
                     },
                 ],
             },
@@ -999,7 +1011,7 @@ mod clock_tests {
             environment: "test_env".into(),
         };
 
-        let merged = metric1.merge(metric2);
+        metric1.merge(metric2);
 
         let expected_impact_metric = ImpactMetric {
             name: "test_counter".into(),
@@ -1008,20 +1020,20 @@ mod clock_tests {
             samples: vec![
                 MetricSample {
                     value: 25.0, // 10.0 + 15.0
-                    labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                 },
                 MetricSample {
                     value: 20.0, // Only in metric1
-                    labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                    labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
                 },
                 MetricSample {
                     value: 25.0, // Only in metric2
-                    labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                    labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
                 },
             ],
         };
 
-        let sorted_merged = sort_samples_by_labels(merged.impact_metric);
+        let sorted_merged = sort_samples_by_labels(metric1.impact_metric);
         let sorted_expected = sort_samples_by_labels(expected_impact_metric);
 
         assert_eq!(sorted_merged, sorted_expected);
@@ -1029,7 +1041,7 @@ mod clock_tests {
 
     #[test]
     pub fn merging_impact_metric_env_gauge_type_uses_last_value() {
-        let metric1 = ImpactMetricEnv {
+        let mut metric1 = ImpactMetricEnv {
             impact_metric: ImpactMetric {
                 name: "test_gauge".into(),
                 help: "Test gauge metric".into(),
@@ -1037,11 +1049,11 @@ mod clock_tests {
                 samples: vec![
                     MetricSample {
                         value: 10.0,
-                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                        labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                     },
                     MetricSample {
                         value: 20.0,
-                        labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                        labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
                     },
                 ],
             },
@@ -1057,11 +1069,11 @@ mod clock_tests {
                 samples: vec![
                     MetricSample {
                         value: 15.0,
-                        labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                        labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                     },
                     MetricSample {
                         value: 25.0,
-                        labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                        labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
                     },
                 ],
             },
@@ -1069,7 +1081,7 @@ mod clock_tests {
             environment: "test_env".into(),
         };
 
-        let merged = metric1.merge(metric2);
+        metric1.merge(metric2);
 
         let expected_impact_metric = ImpactMetric {
             name: "test_gauge".into(),
@@ -1078,20 +1090,20 @@ mod clock_tests {
             samples: vec![
                 MetricSample {
                     value: 15.0, // Last value from metric2
-                    labels: Some(HashMap::from([("label1".into(), "value1".into())])),
+                    labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
                 },
                 MetricSample {
                     value: 20.0, // Only in metric1
-                    labels: Some(HashMap::from([("label2".into(), "value2".into())])),
+                    labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
                 },
                 MetricSample {
                     value: 25.0, // Only in metric2
-                    labels: Some(HashMap::from([("label3".into(), "value3".into())])),
+                    labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
                 },
             ],
         };
 
-        let sorted_merged = sort_samples_by_labels(merged.impact_metric);
+        let sorted_merged = sort_samples_by_labels(metric1.impact_metric);
         let sorted_expected = sort_samples_by_labels(expected_impact_metric);
 
         assert_eq!(sorted_merged, sorted_expected);
