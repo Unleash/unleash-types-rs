@@ -91,6 +91,7 @@
   "segments": [
     {
       "id": 1,
+      "name": "My version segment",
       "constraints": [
         {
           "contextName": "version",
@@ -101,6 +102,7 @@
     },
     {
       "id": 2,
+      "name": "My other version segment",
       "constraints": [
         {
           "contextName": "version",
@@ -111,6 +113,7 @@
     },
     {
       "id": 3,
+      "name": "My other version segment",
       "constraints": [
         {
           "contextName": "version",
@@ -121,6 +124,7 @@
     },
     {
       "id": 4,
+      "name": "My other version segment",
       "constraints": [
         {
           "contextName": "customName",
@@ -131,6 +135,7 @@
     },
     {
       "id": 5,
+      "name": "My other version segment",
       "constraints": [
         {
           "contextName": "slicesLeft",
