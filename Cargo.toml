@@ -1,6 +1,6 @@
 [package]
 name = "unleash-types"
-version = "0.15.18"
+version = "0.15.19"
 edition = "2021"
 authors = [
     "Christopher Kolstad <chriswk@getunleash.io>",

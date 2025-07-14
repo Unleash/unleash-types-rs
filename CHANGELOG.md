@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.19](https://github.com/Unleash/unleash-types-rs/compare/v0.15.18...v0.15.19) - 2025-07-14
+
+### ⚡ Performance
+- improve merge impact metrics thrashing ([#110](https://github.com/unleash/unleash-types-rs/issues/110)) (by @sighphyre) - #110
+
+### ⚙️ Miscellaneous Tasks
+- add formatter ([#108](https://github.com/unleash/unleash-types-rs/issues/108)) (by @sighphyre) - #108
+
+### Contributors
+
+* @sighphyre
+
 ## [0.15.18](https://github.com/Unleash/unleash-types-rs/compare/v0.15.17...v0.15.18) - 2025-07-08
 
 ### 🐛 Bug Fixes
