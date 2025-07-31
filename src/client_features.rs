@@ -125,8 +125,6 @@ impl Context {
         let remote_address = extract_property(&mut raw, &mut props, "remoteAddress");
 
         // Whatever's left in `raw` now is junk, it can get moved to properties
-        // nested properties will get chewed up into a string repr of an object
-        // I'm 99% sure there's no SDK insane enough to respect that though
         for (k, v) in raw.into_iter() {
             if let Some(s) = v.as_str() {
                 props.insert(k, s.to_string());
