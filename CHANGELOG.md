@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.15.20](https://github.com/Unleash/unleash-types-rs/compare/v0.15.19...v0.15.20) - 2025-07-31
+
+### 🐛 Bug Fixes
+- base level properties that are in properties are now moved to base level ([#113](https://github.com/unleash/unleash-types-rs/issues/113)) (by @sighphyre) - #113
+
+### Dependency updates
+- bump criterion from 0.6.0 to 0.7.0 ([#112](https://github.com/unleash/unleash-types-rs/issues/112)) (by @dependabot[bot]) - #112
+
+### Contributors
+
+* @dependabot[bot]
+* @sighphyre
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [0.15.19](https://github.com/Unleash/unleash-types-rs/compare/v0.15.18...v0.15.19) - 2025-07-14
 
 ### ⚡ Performance
