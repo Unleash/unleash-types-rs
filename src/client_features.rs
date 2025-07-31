@@ -8,7 +8,7 @@ use utoipa::{IntoParams, ToSchema};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::Value;
+use serde_json::{Map, Value};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
@@ -52,117 +52,97 @@ pub enum Operator {
     Unknown(String),
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
 pub struct Context {
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub user_id: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub session_id: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub environment: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub app_name: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub current_time: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub remote_address: Option<String>,
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "stringify_numbers_and_booleans_remove_nulls_and_non_strings",
-        serialize_with = "optional_ordered_map",
-        skip_serializing_if = "Option::is_none"
-    )]
     #[cfg_attr(feature = "openapi", param(style = Form, explode = false, value_type = Object))]
     pub properties: Option<HashMap<String, String>>,
 }
 
-// I know this looks silly but it's also important for two reasons:
-// The first is that the client spec tests have a test case that has a context defined like:
-// {
-//   "properties": {
-//      "someValue": null
-//    }
-// }
-// Passing around an Option<HashMap<String, Option<String>>> is awful and unnecessary, we should scrub ingested data
-// before trying to execute our logic, so we scrub out those empty values instead, they do nothing useful for us.
-// The second reason is that we can't shield the Rust code from consumers using the FFI layers and potentially doing
-// exactly the same thing in languages that allow it. They should not do that. But if they do we have enough information
-// to understand the intent of the executed code clearly and there's no reason to fail.
-// This also maps numbers + booleans to strings, and disregards other types without failing
-fn stringify_numbers_and_booleans_remove_nulls_and_non_strings<'de, D>(
-    deserializer: D,
-) -> Result<Option<HashMap<String, String>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let props: Option<HashMap<String, Option<Value>>> = Option::deserialize(deserializer)?;
-    Ok(props.map(|props| {
-        props
-            .into_iter()
-            .filter_map(|(k, v)| match v {
-                Some(Value::String(s)) => {
-                    if s.is_empty() {
-                        None
-                    } else {
-                        Some((k, s))
-                    }
-                }
-                Some(Value::Number(n)) => Some((k, n.to_string())),
-                Some(Value::Bool(b)) => Some((k, b.to_string())),
-                _ => None,
-            })
-            .collect()
-    }))
-}
+impl<'de> Deserialize<'de> for Context {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut raw: Map<String, Value> = Deserialize::deserialize(deserializer)?;
 
-// Allowing a looser deserialization for the contexts properties to match Unleash behavior
-fn stringify_numbers_and_booleans<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let prop: Option<Value> = Option::deserialize(deserializer)?;
-    Ok(match prop {
-        Some(Value::String(s)) => {
-            if s.is_empty() {
-                None
+        if let Some(context_val) = raw.remove("context") {
+            if let Value::Object(inner) = context_val {
+                return Context::from_map(inner);
             } else {
-                Some(s)
+                return Err(serde::de::Error::custom(
+                    "Expected 'context' to be an object",
+                ));
             }
         }
-        Some(Value::Number(n)) => Some(n.to_string()),
-        Some(Value::Bool(b)) => Some(b.to_string()),
-        _ => None,
-    })
+
+        Context::from_map(raw)
+    }
 }
 
-///
+impl Context {
+    fn from_map<E: serde::de::Error>(mut raw: Map<String, Value>) -> Result<Self, E> {
+        fn parse_value(v: Value) -> Option<String> {
+            match v {
+                Value::String(s) => Some(s),
+                Value::Number(n) => Some(n.to_string()),
+                Value::Bool(b) => Some(b.to_string()),
+                _ => None,
+            }
+        }
+
+        fn extract_property(
+            raw: &mut Map<String, Value>,
+            props: &mut HashMap<String, String>,
+            key: &str,
+        ) -> Option<String> {
+            raw.remove(key)
+                .or_else(|| props.remove(key).map(Value::String))
+                .and_then(parse_value)
+        }
+
+        let mut props: HashMap<String, String> = raw
+            .remove("properties")
+            .and_then(|v| v.as_object().cloned())
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|(k, v)| parse_value(v).map(|s| (k, s)))
+            .collect();
+
+        let user_id = extract_property(&mut raw, &mut props, "userId");
+        let session_id = extract_property(&mut raw, &mut props, "sessionId");
+        let environment = extract_property(&mut raw, &mut props, "environment");
+        let app_name = extract_property(&mut raw, &mut props, "appName");
+        let current_time = extract_property(&mut raw, &mut props, "currentTime");
+        let remote_address = extract_property(&mut raw, &mut props, "remoteAddress");
+
+        // Whatever's left in `raw` now is junk, it can get moved to properties
+        for (k, v) in raw.into_iter() {
+            if let Some(s) = v.as_str() {
+                props.insert(k, s.to_string());
+            }
+        }
+
+        Ok(Context {
+            user_id,
+            session_id,
+            environment,
+            app_name,
+            current_time,
+            remote_address,
+            properties: if props.is_empty() { None } else { Some(props) },
+        })
+    }
+}
+
 /// We need this to ensure that ClientFeatures gets a deterministic serialization.
 fn optional_ordered_map<S>(
     value: &Option<HashMap<String, String>>,
@@ -738,6 +718,26 @@ mod tests {
             .clone()
             .unwrap()
             .contains_key("anotherValue"));
+    }
+
+    #[test]
+    fn base_level_properties_in_properties_map_are_moved_to_base_level() {
+        let json = serde_json::json!({
+            "properties": {
+                "userId": "promote-me",
+                "someOtherProp": "stay-in-properties"
+            },
+            "appName": "edge-client"
+        });
+
+        let context: Context = serde_json::from_value(json).unwrap();
+
+        assert_eq!(context.user_id.as_deref(), Some("promote-me"));
+        assert_eq!(context.app_name.as_deref(), Some("edge-client"));
+
+        let props = context.properties.unwrap();
+        assert_eq!(props.get("someOtherProp").unwrap(), "stay-in-properties");
+        assert!(!props.contains_key("userId"));
     }
 
     #[test]
