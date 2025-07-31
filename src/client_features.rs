@@ -89,7 +89,7 @@ impl<'de> Deserialize<'de> for Context {
 }
 
 impl Context {
-    fn from_map<'de, E: serde::de::Error>(mut raw: Map<String, Value>) -> Result<Self, E> {
+    fn from_map<E: serde::de::Error>(mut raw: Map<String, Value>) -> Result<Self, E> {
         fn parse_value(v: Value) -> Option<String> {
             match v {
                 Value::String(s) => Some(s),
