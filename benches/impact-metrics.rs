@@ -56,7 +56,8 @@ pub fn bench_merge(c: &mut Criterion) {
         b.iter(|| {
             let mut first_clone = first.clone();
             let second_clone = second.clone();
-            black_box(first_clone.merge(second_clone));
+            first_clone.merge(second_clone);
+            black_box(());
         })
     });
 }
