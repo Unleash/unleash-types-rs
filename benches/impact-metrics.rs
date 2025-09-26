@@ -62,7 +62,7 @@ pub fn bench_merge(c: &mut Criterion) {
     };
 
     let bucket_count = 100;
-    let buckets1 = generate_buckets(bucket_count, 10);  
+    let buckets1 = generate_buckets(bucket_count, 10);
     let buckets2 = generate_buckets(bucket_count, 5);
     let common_labels = generate_labels(0, 100);
 
@@ -72,14 +72,12 @@ pub fn bench_merge(c: &mut Criterion) {
         impact_metric: ImpactMetric::Histogram {
             name: "test_histogram".to_string(),
             help: "histogram metric".to_string(),
-            samples: vec![
-                BucketMetricSample {
-                    labels: Some(common_labels.clone()),
-                    count: 1000,
-                    sum: 2500.0,
-                    buckets: buckets1,
-                },
-            ],
+            samples: vec![BucketMetricSample {
+                labels: Some(common_labels.clone()),
+                count: 1000,
+                sum: 2500.0,
+                buckets: buckets1,
+            }],
         },
     };
 
@@ -89,14 +87,12 @@ pub fn bench_merge(c: &mut Criterion) {
         impact_metric: ImpactMetric::Histogram {
             name: "test_histogram".to_string(),
             help: "histogram metric".to_string(),
-            samples: vec![
-                BucketMetricSample {
-                    labels: Some(common_labels),
-                    count: 500,
-                    sum: 1250.0,
-                    buckets: buckets2,
-                },
-            ],
+            samples: vec![BucketMetricSample {
+                labels: Some(common_labels),
+                count: 500,
+                sum: 1250.0,
+                buckets: buckets2,
+            }],
         },
     };
 
