@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use std::{collections::BTreeMap, hint::black_box};
 use unleash_types::{
     client_metrics::{
-        ImpactMetric, ImpactMetricEnv, MetricSample, MetricType, NumericMetricSample,
+        Bucket, BucketMetricSample, ImpactMetric, ImpactMetricEnv, NumericMetricSample,
     },
     MergeMut,
 };
@@ -14,50 +14,107 @@ fn generate_labels(start: usize, end: usize) -> BTreeMap<String, String> {
 }
 
 pub fn bench_merge(c: &mut Criterion) {
-    let first = ImpactMetricEnv {
+    // Test counter merging with different labels
+    let first_counter = ImpactMetricEnv {
         app_name: "test_app".to_string(),
         environment: "development".to_string(),
-        impact_metric: ImpactMetric {
+        impact_metric: ImpactMetric::Counter {
             name: "test_metric".to_string(),
             help: "something".to_string(),
-            r#type: MetricType::Counter,
             samples: vec![
-                MetricSample::Numeric(NumericMetricSample {
+                NumericMetricSample {
                     value: 1.0,
                     labels: Some(generate_labels(0, 100)),
-                }),
-                MetricSample::Numeric(NumericMetricSample {
+                },
+                NumericMetricSample {
                     value: 2.0,
                     labels: Some(generate_labels(100, 200)),
-                }),
+                },
             ],
         },
     };
 
-    let second = ImpactMetricEnv {
+    let second_counter = ImpactMetricEnv {
         app_name: "test_app".to_string(),
         environment: "development".to_string(),
-        impact_metric: ImpactMetric {
+        impact_metric: ImpactMetric::Counter {
             name: "test_metric".to_string(),
             help: "something".to_string(),
-            r#type: MetricType::Counter,
             samples: vec![
-                MetricSample::Numeric(NumericMetricSample {
+                NumericMetricSample {
                     value: 3.0,
                     labels: Some(generate_labels(50, 150)),
-                }),
-                MetricSample::Numeric(NumericMetricSample {
+                },
+                NumericMetricSample {
                     value: 4.0,
                     labels: Some(generate_labels(250, 350)),
-                }),
+                },
             ],
         },
     };
 
-    c.bench_function("labels_to_key", |b| {
+    // Test histogram merging with matching buckets (fast path) and many labels
+    // Using the same labels for both histograms to test the fast path
+    let common_labels = generate_labels(0, 100);
+    
+    let first_histogram = ImpactMetricEnv {
+        app_name: "test_app".to_string(),
+        environment: "development".to_string(),
+        impact_metric: ImpactMetric::Histogram {
+            name: "test_histogram".to_string(),
+            help: "histogram metric".to_string(),
+            samples: vec![
+                BucketMetricSample {
+                    labels: Some(common_labels.clone()),
+                    count: 100,
+                    sum: 250.0,
+                    buckets: vec![
+                        Bucket { le: 0.1, count: 10 },
+                        Bucket { le: 0.5, count: 30 },
+                        Bucket { le: 1.0, count: 60 },
+                        Bucket { le: 5.0, count: 90 },
+                        Bucket { le: f64::INFINITY, count: 100 },
+                    ],
+                },
+            ],
+        },
+    };
+
+    let second_histogram = ImpactMetricEnv {
+        app_name: "test_app".to_string(),
+        environment: "development".to_string(),
+        impact_metric: ImpactMetric::Histogram {
+            name: "test_histogram".to_string(),
+            help: "histogram metric".to_string(),
+            samples: vec![
+                BucketMetricSample {
+                    labels: Some(common_labels.clone()),
+                    count: 50,
+                    sum: 125.0,
+                    buckets: vec![
+                        Bucket { le: 0.1, count: 5 },
+                        Bucket { le: 0.5, count: 15 },
+                        Bucket { le: 1.0, count: 30 },
+                        Bucket { le: 5.0, count: 45 },
+                        Bucket { le: f64::INFINITY, count: 50 },
+                    ],
+                },
+            ],
+        },
+    };
+
+    c.bench_function("counter_merge", |b| {
         b.iter(|| {
-            let mut first_clone = first.clone();
-            let second_clone = second.clone();
+            let mut first_clone = first_counter.clone();
+            let second_clone = second_counter.clone();
+            black_box(first_clone.merge(second_clone));
+        })
+    });
+
+    c.bench_function("histogram_merge_fast_path", |b| {
+        b.iter(|| {
+            let mut first_clone = first_histogram.clone();
+            let second_clone = second_histogram.clone();
             black_box(first_clone.merge(second_clone));
         })
     });
