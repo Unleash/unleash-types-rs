@@ -9,7 +9,6 @@ use utoipa::ToSchema;
 
 use crate::{Merge, MergeMut};
 
-/// Type alias for metric labels used across different sample types
 type MetricLabels = Option<BTreeMap<String, String>>;
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
