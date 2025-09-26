@@ -432,13 +432,10 @@ impl MergeMut for ImpactMetricEnv {
     }
 }
 
-/// Generic function to merge and deduplicate samples based on labels
-/// Since both NumericMetricSample and BucketMetricSample have identical
-/// labels: MetricLabels fields, we pass a getter function
 fn merge_and_deduplicate_samples<T, F>(
     self_samples: &mut Vec<T>,
     other_samples: Vec<T>,
-    get_labels: fn(&T) -> &MetricLabels,
+    get_labels: fn(&T) -> &MetricLabels, // needed due to nonstructural typing
     merge_duplicates: F,
 ) where
     F: Fn(&mut T, T),
