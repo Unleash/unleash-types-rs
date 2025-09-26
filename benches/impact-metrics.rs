@@ -13,6 +13,15 @@ fn generate_labels(start: usize, end: usize) -> BTreeMap<String, String> {
         .collect()
 }
 
+fn generate_buckets(count: usize, multiplier: u64) -> Vec<Bucket> {
+    (0..count)
+        .map(|i| Bucket {
+            le: (i as f64) * 0.1,
+            count: i as u64 * multiplier,
+        })
+        .collect()
+}
+
 pub fn bench_merge(c: &mut Criterion) {
     // Test counter merging with different labels
     let first_counter = ImpactMetricEnv {
@@ -53,10 +62,11 @@ pub fn bench_merge(c: &mut Criterion) {
         },
     };
 
-    // Test histogram merging with matching buckets (fast path) and many labels
-    // Using the same labels for both histograms to test the fast path
+    let bucket_count = 100;
+    let buckets1 = generate_buckets(bucket_count, 10);  
+    let buckets2 = generate_buckets(bucket_count, 5);
     let common_labels = generate_labels(0, 100);
-    
+
     let first_histogram = ImpactMetricEnv {
         app_name: "test_app".to_string(),
         environment: "development".to_string(),
@@ -66,15 +76,9 @@ pub fn bench_merge(c: &mut Criterion) {
             samples: vec![
                 BucketMetricSample {
                     labels: Some(common_labels.clone()),
-                    count: 100,
-                    sum: 250.0,
-                    buckets: vec![
-                        Bucket { le: 0.1, count: 10 },
-                        Bucket { le: 0.5, count: 30 },
-                        Bucket { le: 1.0, count: 60 },
-                        Bucket { le: 5.0, count: 90 },
-                        Bucket { le: f64::INFINITY, count: 100 },
-                    ],
+                    count: 1000,
+                    sum: 2500.0,
+                    buckets: buckets1,
                 },
             ],
         },
@@ -88,16 +92,10 @@ pub fn bench_merge(c: &mut Criterion) {
             help: "histogram metric".to_string(),
             samples: vec![
                 BucketMetricSample {
-                    labels: Some(common_labels.clone()),
-                    count: 50,
-                    sum: 125.0,
-                    buckets: vec![
-                        Bucket { le: 0.1, count: 5 },
-                        Bucket { le: 0.5, count: 15 },
-                        Bucket { le: 1.0, count: 30 },
-                        Bucket { le: 5.0, count: 45 },
-                        Bucket { le: f64::INFINITY, count: 50 },
-                    ],
+                    labels: Some(common_labels),
+                    count: 500,
+                    sum: 1250.0,
+                    buckets: buckets2,
                 },
             ],
         },
@@ -111,7 +109,7 @@ pub fn bench_merge(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("histogram_merge_fast_path", |b| {
+    c.bench_function("histogram_merge_many_buckets_fast_path", |b| {
         b.iter(|| {
             let mut first_clone = first_histogram.clone();
             let second_clone = second_histogram.clone();
