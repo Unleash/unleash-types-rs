@@ -415,12 +415,19 @@ impl MergeMut for ImpactMetricEnv {
     }
 }
 
-fn merge_counter_samples(
-    self_samples: &mut Vec<NumericMetricSample>,
-    other_samples: Vec<NumericMetricSample>,
-) {
+/// Generic function to merge and deduplicate samples based on labels
+/// Since both NumericMetricSample and BucketMetricSample have identical
+/// labels: Option<BTreeMap<String, String>> fields, we pass a getter function
+fn merge_and_deduplicate_samples<T, F>(
+    self_samples: &mut Vec<T>,
+    other_samples: Vec<T>,
+    get_labels: fn(&T) -> &Option<BTreeMap<String, String>>,
+    merge_duplicates: F,
+) where
+    F: Fn(&mut T, T),
+{
     self_samples.extend(other_samples);
-    self_samples.sort_by(|a, b| a.labels.cmp(&b.labels));
+    self_samples.sort_by(|a, b| get_labels(a).cmp(get_labels(b)));
 
     let old_samples = std::mem::take(self_samples);
     let mut deduped = Vec::with_capacity(old_samples.len());
@@ -428,8 +435,8 @@ fn merge_counter_samples(
 
     if let Some(mut prev) = iter.next() {
         for sample in iter {
-            if prev.labels == sample.labels {
-                prev.value += sample.value;
+            if get_labels(&prev) == get_labels(&sample) {
+                merge_duplicates(&mut prev, sample);
             } else {
                 deduped.push(prev);
                 prev = sample;
@@ -439,59 +446,49 @@ fn merge_counter_samples(
     }
 
     *self_samples = deduped;
+}
+
+fn merge_counter_samples(
+    self_samples: &mut Vec<NumericMetricSample>,
+    other_samples: Vec<NumericMetricSample>,
+) {
+    merge_and_deduplicate_samples(
+        self_samples,
+        other_samples,
+        |s| &s.labels,
+        |prev, sample| {
+            prev.value += sample.value;
+        },
+    );
 }
 
 fn merge_gauge_samples(
     self_samples: &mut Vec<NumericMetricSample>,
     other_samples: Vec<NumericMetricSample>,
 ) {
-    self_samples.extend(other_samples);
-    self_samples.sort_by(|a, b| a.labels.cmp(&b.labels));
-
-    let old_samples = std::mem::take(self_samples);
-    let mut deduped = Vec::with_capacity(old_samples.len());
-    let mut iter = old_samples.into_iter();
-
-    if let Some(mut prev) = iter.next() {
-        for sample in iter {
-            if prev.labels == sample.labels {
-                // For gauge, last value wins
-                prev = sample;
-            } else {
-                deduped.push(prev);
-                prev = sample;
-            }
-        }
-        deduped.push(prev);
-    }
-
-    *self_samples = deduped;
+    merge_and_deduplicate_samples(
+        self_samples,
+        other_samples,
+        |s| &s.labels,
+        |prev, sample| {
+            // For gauge, last value wins
+            prev.value = sample.value;
+        },
+    );
 }
 
 fn merge_histogram_samples(
     self_samples: &mut Vec<BucketMetricSample>,
     other_samples: Vec<BucketMetricSample>,
 ) {
-    self_samples.extend(other_samples);
-    self_samples.sort_by(|a, b| a.labels.cmp(&b.labels));
-
-    let old_samples = std::mem::take(self_samples);
-    let mut deduped = Vec::with_capacity(old_samples.len());
-    let mut iter = old_samples.into_iter();
-
-    if let Some(mut prev) = iter.next() {
-        for sample in iter {
-            if prev.labels == sample.labels {
-                prev.merge(sample);
-            } else {
-                deduped.push(prev);
-                prev = sample;
-            }
-        }
-        deduped.push(prev);
-    }
-
-    *self_samples = deduped;
+    merge_and_deduplicate_samples(
+        self_samples,
+        other_samples,
+        |s| &s.labels,
+        |prev, sample| {
+            prev.merge(sample);
+        },
+    );
 }
 
 impl ClientApplication {
