@@ -271,13 +271,11 @@ impl MergeMut for BucketMetricSample {
         // Optimized for the common case where both samples have the same bucket boundaries
         // (same le values in the same order), which is typical for metrics from the same histogram
         if self.buckets.len() == other.buckets.len() {
-            // Try fast path: check if all le values match
             let same_buckets = self.buckets.iter().zip(&other.buckets).all(|(a, b)| {
                 (a.le.is_infinite() && b.le.is_infinite()) || (a.le - b.le).abs() < f64::EPSILON
             });
 
             if same_buckets {
-                // Fast path: just add counts for matching buckets
                 for (self_bucket, other_bucket) in self.buckets.iter_mut().zip(other.buckets) {
                     self_bucket.count += other_bucket.count;
                 }
@@ -285,7 +283,7 @@ impl MergeMut for BucketMetricSample {
             }
         }
 
-        // Slow path: buckets don't match, need to merge properly
+        // Slow path: buckets don't match
         for bucket in other.buckets {
             if let Some(existing) = self.buckets.iter_mut().find(|b| {
                 (b.le.is_infinite() && bucket.le.is_infinite())
