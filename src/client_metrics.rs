@@ -203,7 +203,9 @@ impl PartialOrd for Bucket {
 
 impl Ord for Bucket {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.le.partial_cmp(&other.le).unwrap_or(std::cmp::Ordering::Equal)
+        self.le
+            .partial_cmp(&other.le)
+            .unwrap_or(std::cmp::Ordering::Equal)
     }
 }
 
@@ -212,14 +214,14 @@ where
     D: serde::Deserializer<'de>,
 {
     use serde::de::Error;
-    
+
     #[derive(Deserialize)]
     #[serde(untagged)]
     enum BucketLe {
         Number(f64),
         String(String),
     }
-    
+
     match BucketLe::deserialize(deserializer)? {
         BucketLe::Number(n) => Ok(n),
         BucketLe::String(s) if s == "+Inf" => Ok(f64::INFINITY),
@@ -264,7 +266,7 @@ impl MergeMut for BucketMetricSample {
     fn merge(&mut self, other: BucketMetricSample) {
         self.count += other.count;
         self.sum += other.sum;
-        
+
         // Merge buckets
         for bucket in other.buckets {
             if let Some(existing) = self.buckets.iter_mut().find(|b| {
@@ -450,11 +452,15 @@ impl MergeMut for ImpactMetricEnv {
             for sample in iter {
                 if prev.labels_to_key() == sample.labels_to_key() {
                     if is_counter {
-                        if let (MetricSample::Numeric(ref mut p), MetricSample::Numeric(s)) = (&mut prev, sample) {
+                        if let (MetricSample::Numeric(ref mut p), MetricSample::Numeric(s)) =
+                            (&mut prev, sample)
+                        {
                             p.value += s.value;
                         }
                     } else if is_histogram {
-                        if let (MetricSample::Bucket(ref mut p), MetricSample::Bucket(s)) = (&mut prev, sample) {
+                        if let (MetricSample::Bucket(ref mut p), MetricSample::Bucket(s)) =
+                            (&mut prev, sample)
+                        {
                             p.merge(s);
                         }
                     } else {
@@ -1267,7 +1273,10 @@ mod clock_tests {
                 buckets: vec![
                     Bucket { le: 0.1, count: 10 },
                     Bucket { le: 1.0, count: 30 },
-                    Bucket { le: f64::INFINITY, count: 50 },
+                    Bucket {
+                        le: f64::INFINITY,
+                        count: 50,
+                    },
                 ],
             })],
         };
@@ -1298,7 +1307,10 @@ mod clock_tests {
                     buckets: vec![
                         Bucket { le: 0.1, count: 5 },
                         Bucket { le: 1.0, count: 8 },
-                        Bucket { le: f64::INFINITY, count: 10 },
+                        Bucket {
+                            le: f64::INFINITY,
+                            count: 10,
+                        },
                     ],
                 })],
             },
@@ -1318,7 +1330,10 @@ mod clock_tests {
                     buckets: vec![
                         Bucket { le: 0.1, count: 2 },
                         Bucket { le: 0.5, count: 4 }, // New bucket
-                        Bucket { le: f64::INFINITY, count: 5 },
+                        Bucket {
+                            le: f64::INFINITY,
+                            count: 5,
+                        },
                     ],
                 })],
             },
@@ -1341,7 +1356,10 @@ mod clock_tests {
                         Bucket { le: 0.1, count: 7 }, // 5 + 2
                         Bucket { le: 0.5, count: 4 }, // New from metric2
                         Bucket { le: 1.0, count: 8 }, // Only from metric1
-                        Bucket { le: f64::INFINITY, count: 15 }, // 10 + 5
+                        Bucket {
+                            le: f64::INFINITY,
+                            count: 15,
+                        }, // 10 + 5
                     ],
                 })],
             },
@@ -1356,13 +1374,18 @@ mod clock_tests {
     fn bucket_ordering() {
         let bucket_1 = Bucket { le: 0.1, count: 10 };
         let bucket_2 = Bucket { le: 1.0, count: 20 };
-        let bucket_3 = Bucket { le: 10.0, count: 30 };
-        let bucket_inf = Bucket { le: f64::INFINITY, count: 40 };
+        let bucket_3 = Bucket {
+            le: 10.0,
+            count: 30,
+        };
+        let bucket_inf = Bucket {
+            le: f64::INFINITY,
+            count: 40,
+        };
 
         assert!(bucket_1 < bucket_2);
         assert!(bucket_2 < bucket_3);
         assert!(bucket_3 < bucket_inf);
         assert!(bucket_1 < bucket_inf);
     }
-
 }
