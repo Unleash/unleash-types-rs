@@ -9,6 +9,9 @@ use utoipa::ToSchema;
 
 use crate::{Merge, MergeMut};
 
+/// Type alias for metric labels used across different sample types
+type MetricLabels = Option<BTreeMap<String, String>>;
+
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
@@ -244,7 +247,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct BucketMetricSample {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub labels: Option<BTreeMap<String, String>>,
+    pub labels: MetricLabels,
     pub count: u64,
     pub sum: f64,
     pub buckets: Vec<Bucket>,
@@ -287,7 +290,7 @@ impl MergeMut for BucketMetricSample {
 pub struct NumericMetricSample {
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub labels: Option<BTreeMap<String, String>>,
+    pub labels: MetricLabels,
 }
 
 impl PartialEq for NumericMetricSample {
@@ -417,11 +420,11 @@ impl MergeMut for ImpactMetricEnv {
 
 /// Generic function to merge and deduplicate samples based on labels
 /// Since both NumericMetricSample and BucketMetricSample have identical
-/// labels: Option<BTreeMap<String, String>> fields, we pass a getter function
+/// labels: MetricLabels fields, we pass a getter function
 fn merge_and_deduplicate_samples<T, F>(
     self_samples: &mut Vec<T>,
     other_samples: Vec<T>,
-    get_labels: fn(&T) -> &Option<BTreeMap<String, String>>,
+    get_labels: fn(&T) -> &MetricLabels,
     merge_duplicates: F,
 ) where
     F: Fn(&mut T, T),
