@@ -1308,7 +1308,6 @@ mod clock_tests {
         let deserialized: ImpactMetric = serde_json::from_str(&json_string).unwrap();
 
         assert_eq!(deserialized, histogram_metric);
-        // Check that the infinity bucket is serialized as "+Inf"
         assert!(
             json_string.contains("\"+Inf\""),
             "JSON should contain +Inf for infinity bucket. Got: {}",
