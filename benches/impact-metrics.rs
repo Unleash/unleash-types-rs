@@ -23,7 +23,6 @@ fn generate_buckets(count: usize, multiplier: u64) -> Vec<Bucket> {
 }
 
 pub fn bench_merge(c: &mut Criterion) {
-    // Test counter merging with different labels
     let first_counter = ImpactMetricEnv {
         app_name: "test_app".to_string(),
         environment: "development".to_string(),
