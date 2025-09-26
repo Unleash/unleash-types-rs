@@ -1,7 +1,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{collections::BTreeMap, hint::black_box};
 use unleash_types::{
-    client_metrics::{ImpactMetric, ImpactMetricEnv, MetricSample, MetricType},
+    client_metrics::{
+        ImpactMetric, ImpactMetricEnv, MetricSample, MetricType, NumericMetricSample,
+    },
     MergeMut,
 };
 
@@ -20,14 +22,14 @@ pub fn bench_merge(c: &mut Criterion) {
             help: "something".to_string(),
             r#type: MetricType::Counter,
             samples: vec![
-                MetricSample {
+                MetricSample::Numeric(NumericMetricSample {
                     value: 1.0,
                     labels: Some(generate_labels(0, 100)),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 2.0,
                     labels: Some(generate_labels(100, 200)),
-                },
+                }),
             ],
         },
     };
@@ -40,14 +42,14 @@ pub fn bench_merge(c: &mut Criterion) {
             help: "something".to_string(),
             r#type: MetricType::Counter,
             samples: vec![
-                MetricSample {
+                MetricSample::Numeric(NumericMetricSample {
                     value: 3.0,
                     labels: Some(generate_labels(50, 150)),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 4.0,
                     labels: Some(generate_labels(250, 350)),
-                },
+                }),
             ],
         },
     };

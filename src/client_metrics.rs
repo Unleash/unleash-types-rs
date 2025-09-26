@@ -171,16 +171,125 @@ pub struct MetricsMetadata {
     pub platform_version: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+pub struct Bucket {
+    #[serde(
+        deserialize_with = "deserialize_bucket_le",
+        serialize_with = "serialize_bucket_le"
+    )]
+    pub le: f64,
+    pub count: u64,
+}
+
+impl PartialEq for Bucket {
+    fn eq(&self, other: &Self) -> bool {
+        let le_equal = if self.le.is_infinite() && other.le.is_infinite() {
+            true
+        } else {
+            (self.le - other.le).abs() < f64::EPSILON
+        };
+        le_equal && self.count == other.count
+    }
+}
+
+impl Eq for Bucket {}
+
+impl PartialOrd for Bucket {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Bucket {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.le.partial_cmp(&other.le).unwrap_or(std::cmp::Ordering::Equal)
+    }
+}
+
+fn deserialize_bucket_le<'de, D>(deserializer: D) -> Result<f64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+    
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum BucketLe {
+        Number(f64),
+        String(String),
+    }
+    
+    match BucketLe::deserialize(deserializer)? {
+        BucketLe::Number(n) => Ok(n),
+        BucketLe::String(s) if s == "+Inf" => Ok(f64::INFINITY),
+        BucketLe::String(s) => Err(D::Error::custom(format!("expected '+Inf', got '{}'", s))),
+    }
+}
+
+fn serialize_bucket_le<S>(le: &f64, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    if le.is_infinite() {
+        serializer.serialize_str("+Inf")
+    } else {
+        serializer.serialize_f64(*le)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct BucketMetricSample {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<BTreeMap<String, String>>,
+    pub count: u64,
+    pub sum: f64,
+    pub buckets: Vec<Bucket>,
+}
+
+impl PartialEq for BucketMetricSample {
+    fn eq(&self, other: &Self) -> bool {
+        self.labels == other.labels
+            && self.count == other.count
+            && (self.sum - other.sum).abs() < f64::EPSILON
+            && self.buckets == other.buckets
+    }
+}
+
+impl Eq for BucketMetricSample {}
+
+impl MergeMut for BucketMetricSample {
+    fn merge(&mut self, other: BucketMetricSample) {
+        self.count += other.count;
+        self.sum += other.sum;
+        
+        // Merge buckets
+        for bucket in other.buckets {
+            if let Some(existing) = self.buckets.iter_mut().find(|b| {
+                (b.le.is_infinite() && bucket.le.is_infinite())
+                    || (b.le - bucket.le).abs() < f64::EPSILON
+            }) {
+                existing.count += bucket.count;
+            } else {
+                self.buckets.push(bucket);
+            }
+        }
+        self.buckets.sort();
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
-pub struct MetricSample {
+pub struct NumericMetricSample {
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<BTreeMap<String, String>>,
 }
 
-impl PartialEq for MetricSample {
+impl PartialEq for NumericMetricSample {
     fn eq(&self, other: &Self) -> bool {
         let values_equal = (self.value - other.value).abs() < f64::EPSILON;
 
@@ -190,11 +299,38 @@ impl PartialEq for MetricSample {
     }
 }
 
+impl Eq for NumericMetricSample {}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+#[serde(untagged)]
+pub enum MetricSample {
+    Numeric(NumericMetricSample),
+    Bucket(BucketMetricSample),
+}
+
+impl PartialEq for MetricSample {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (MetricSample::Numeric(a), MetricSample::Numeric(b)) => a == b,
+            (MetricSample::Bucket(a), MetricSample::Bucket(b)) => a == b,
+            _ => false,
+        }
+    }
+}
+
 impl Eq for MetricSample {}
 
 impl MetricSample {
+    pub fn labels(&self) -> &Option<BTreeMap<String, String>> {
+        match self {
+            MetricSample::Numeric(sample) => &sample.labels,
+            MetricSample::Bucket(sample) => &sample.labels,
+        }
+    }
+
     pub fn labels_to_key(&self) -> String {
-        match &self.labels {
+        match self.labels() {
             Some(labels_map) => {
                 let mut sorted_entries: Vec<(&String, &String)> = labels_map.iter().collect();
                 sorted_entries.sort_unstable_by(|a, b| a.0.cmp(b.0));
@@ -222,6 +358,7 @@ impl MetricSample {
 pub enum MetricType {
     Counter,
     Gauge,
+    Histogram,
     #[serde(other)]
     Unknown,
 }
@@ -233,6 +370,7 @@ impl FromStr for MetricType {
         match s.to_lowercase().as_str() {
             "counter" => Ok(MetricType::Counter),
             "gauge" => Ok(MetricType::Gauge),
+            "histogram" => Ok(MetricType::Histogram),
             _ => Ok(MetricType::Unknown),
         }
     }
@@ -253,6 +391,7 @@ impl std::fmt::Display for MetricType {
             match self {
                 MetricType::Counter => "counter",
                 MetricType::Gauge => "gauge",
+                MetricType::Histogram => "histogram",
                 MetricType::Unknown => "unknown",
             }
         )
@@ -269,7 +408,7 @@ pub struct ImpactMetric {
     pub samples: Vec<MetricSample>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ImpactMetricEnv {
@@ -294,13 +433,14 @@ impl ImpactMetricEnv {
 impl MergeMut for ImpactMetricEnv {
     fn merge(&mut self, other: ImpactMetricEnv) {
         let is_counter = self.impact_metric.r#type == MetricType::Counter;
+        let is_histogram = self.impact_metric.r#type == MetricType::Histogram;
 
         self.impact_metric
             .samples
             .extend(other.impact_metric.samples);
         self.impact_metric
             .samples
-            .sort_by(|a, b| a.labels.cmp(&b.labels));
+            .sort_by(|a, b| a.labels_to_key().cmp(&b.labels_to_key()));
 
         let old_samples = std::mem::take(&mut self.impact_metric.samples);
         let mut deduped = Vec::with_capacity(old_samples.len());
@@ -308,11 +448,16 @@ impl MergeMut for ImpactMetricEnv {
 
         if let Some(mut prev) = iter.next() {
             for sample in iter {
-                if sample.labels == prev.labels {
+                if prev.labels_to_key() == sample.labels_to_key() {
                     if is_counter {
-                        prev.value += sample.value;
+                        if let (MetricSample::Numeric(ref mut p), MetricSample::Numeric(s)) = (&mut prev, sample) {
+                            p.value += s.value;
+                        }
+                    } else if is_histogram {
+                        if let (MetricSample::Bucket(ref mut p), MetricSample::Bucket(s)) = (&mut prev, sample) {
+                            p.merge(s);
+                        }
                     } else {
-                        // For non-counter metrics (like gauge), last value wins
                         prev = sample;
                     }
                 } else {
@@ -452,10 +597,10 @@ mod tests {
             name: "labeled_counter".into(),
             help: "with labels".into(),
             r#type: MetricType::Counter,
-            samples: vec![MetricSample {
+            samples: vec![MetricSample::Numeric(NumericMetricSample {
                 value: 10.0,
                 labels: Some(BTreeMap::from([("foo".into(), "bar".into())])),
-            }],
+            })],
         }];
 
         let metrics = ClientMetrics {
@@ -977,14 +1122,14 @@ mod clock_tests {
                 help: "Test counter metric".into(),
                 r#type: MetricType::Counter,
                 samples: vec![
-                    MetricSample {
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 10.0,
                         labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                    },
-                    MetricSample {
+                    }),
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 20.0,
                         labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
-                    },
+                    }),
                 ],
             },
             app_name: "test_app".into(),
@@ -997,14 +1142,14 @@ mod clock_tests {
                 help: "Test counter metric".into(),
                 r#type: MetricType::Counter,
                 samples: vec![
-                    MetricSample {
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 15.0,
                         labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                    },
-                    MetricSample {
+                    }),
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 25.0,
                         labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
-                    },
+                    }),
                 ],
             },
             app_name: "test_app".into(),
@@ -1018,18 +1163,18 @@ mod clock_tests {
             help: "Test counter metric".into(),
             r#type: MetricType::Counter,
             samples: vec![
-                MetricSample {
+                MetricSample::Numeric(NumericMetricSample {
                     value: 25.0, // 10.0 + 15.0
                     labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 20.0, // Only in metric1
                     labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 25.0, // Only in metric2
                     labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
-                },
+                }),
             ],
         };
 
@@ -1047,14 +1192,14 @@ mod clock_tests {
                 help: "Test gauge metric".into(),
                 r#type: MetricType::Gauge,
                 samples: vec![
-                    MetricSample {
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 10.0,
                         labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                    },
-                    MetricSample {
+                    }),
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 20.0,
                         labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
-                    },
+                    }),
                 ],
             },
             app_name: "test_app".into(),
@@ -1067,14 +1212,14 @@ mod clock_tests {
                 help: "Test gauge metric".into(),
                 r#type: MetricType::Gauge,
                 samples: vec![
-                    MetricSample {
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 15.0,
                         labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                    },
-                    MetricSample {
+                    }),
+                    MetricSample::Numeric(NumericMetricSample {
                         value: 25.0,
                         labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
-                    },
+                    }),
                 ],
             },
             app_name: "test_app".into(),
@@ -1088,18 +1233,18 @@ mod clock_tests {
             help: "Test gauge metric".into(),
             r#type: MetricType::Gauge,
             samples: vec![
-                MetricSample {
+                MetricSample::Numeric(NumericMetricSample {
                     value: 15.0, // Last value from metric2
                     labels: Some(BTreeMap::from([("label1".into(), "value1".into())])),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 20.0, // Only in metric1
                     labels: Some(BTreeMap::from([("label2".into(), "value2".into())])),
-                },
-                MetricSample {
+                }),
+                MetricSample::Numeric(NumericMetricSample {
                     value: 25.0, // Only in metric2
                     labels: Some(BTreeMap::from([("label3".into(), "value3".into())])),
-                },
+                }),
             ],
         };
 
@@ -1108,4 +1253,116 @@ mod clock_tests {
 
         assert_eq!(sorted_merged, sorted_expected);
     }
+
+    #[test]
+    pub fn histogram_metric_serialization() {
+        let histogram_metric = ImpactMetric {
+            name: "test_histogram".into(),
+            help: "Test histogram metric".into(),
+            r#type: MetricType::Histogram,
+            samples: vec![MetricSample::Bucket(BucketMetricSample {
+                labels: Some(BTreeMap::from([("endpoint".into(), "/api/test".into())])),
+                count: 50,
+                sum: 125.5,
+                buckets: vec![
+                    Bucket { le: 0.1, count: 10 },
+                    Bucket { le: 1.0, count: 30 },
+                    Bucket { le: f64::INFINITY, count: 50 },
+                ],
+            })],
+        };
+
+        let json_string = serde_json::to_string(&histogram_metric).unwrap();
+        let deserialized: ImpactMetric = serde_json::from_str(&json_string).unwrap();
+
+        assert_eq!(deserialized, histogram_metric);
+        // Check that the infinity bucket is serialized as "+Inf"
+        assert!(
+            json_string.contains("\"+Inf\""),
+            "JSON should contain +Inf for infinity bucket. Got: {}",
+            json_string
+        );
+    }
+
+    #[test]
+    pub fn merging_histogram_metrics() {
+        let mut metric1 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_histogram".into(),
+                help: "Test histogram metric".into(),
+                r#type: MetricType::Histogram,
+                samples: vec![MetricSample::Bucket(BucketMetricSample {
+                    labels: Some(BTreeMap::from([("service".into(), "api".into())])),
+                    count: 10,
+                    sum: 25.0,
+                    buckets: vec![
+                        Bucket { le: 0.1, count: 5 },
+                        Bucket { le: 1.0, count: 8 },
+                        Bucket { le: f64::INFINITY, count: 10 },
+                    ],
+                })],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        let metric2 = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_histogram".into(),
+                help: "Test histogram metric".into(),
+                r#type: MetricType::Histogram,
+                samples: vec![MetricSample::Bucket(BucketMetricSample {
+                    labels: Some(BTreeMap::from([("service".into(), "api".into())])),
+                    count: 5,
+                    sum: 15.0,
+                    buckets: vec![
+                        Bucket { le: 0.1, count: 2 },
+                        Bucket { le: 0.5, count: 4 }, // New bucket
+                        Bucket { le: f64::INFINITY, count: 5 },
+                    ],
+                })],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        metric1.merge(metric2);
+
+        let expected = ImpactMetricEnv {
+            impact_metric: ImpactMetric {
+                name: "test_histogram".into(),
+                help: "Test histogram metric".into(),
+                r#type: MetricType::Histogram,
+                samples: vec![MetricSample::Bucket(BucketMetricSample {
+                    labels: Some(BTreeMap::from([("service".into(), "api".into())])),
+                    count: 15, // 10 + 5
+                    sum: 40.0, // 25.0 + 15.0
+                    buckets: vec![
+                        Bucket { le: 0.1, count: 7 }, // 5 + 2
+                        Bucket { le: 0.5, count: 4 }, // New from metric2
+                        Bucket { le: 1.0, count: 8 }, // Only from metric1
+                        Bucket { le: f64::INFINITY, count: 15 }, // 10 + 5
+                    ],
+                })],
+            },
+            app_name: "test_app".into(),
+            environment: "test_env".into(),
+        };
+
+        assert_eq!(metric1, expected);
+    }
+
+    #[test]
+    fn bucket_ordering() {
+        let bucket_1 = Bucket { le: 0.1, count: 10 };
+        let bucket_2 = Bucket { le: 1.0, count: 20 };
+        let bucket_3 = Bucket { le: 10.0, count: 30 };
+        let bucket_inf = Bucket { le: f64::INFINITY, count: 40 };
+
+        assert!(bucket_1 < bucket_2);
+        assert!(bucket_2 < bucket_3);
+        assert!(bucket_3 < bucket_inf);
+        assert!(bucket_1 < bucket_inf);
+    }
+
 }
