@@ -219,6 +219,12 @@ where
     }
 
     match BucketLe::deserialize(deserializer)? {
+        BucketLe::Number(n) if n.is_nan() => {
+            Err(D::Error::custom("NaN is not a valid bucket boundary"))
+        }
+        BucketLe::Number(n) if n.is_infinite() && n.is_sign_negative() => {
+            Err(D::Error::custom("-Inf is not a valid bucket boundary"))
+        }
         BucketLe::Number(n) => Ok(n),
         BucketLe::String(s) if s == "+Inf" => Ok(f64::INFINITY),
         BucketLe::String(s) => Err(D::Error::custom(format!("expected '+Inf', got '{}'", s))),
