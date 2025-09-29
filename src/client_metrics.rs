@@ -1351,6 +1351,7 @@ mod clock_tests {
                     buckets: vec![
                         Bucket { le: 0.1, count: 2 },
                         Bucket { le: 0.5, count: 4 }, // New bucket
+                        Bucket { le: 2.0, count: 4 }, // Another new bucket
                         Bucket {
                             le: f64::INFINITY,
                             count: 5,
@@ -1373,9 +1374,10 @@ mod clock_tests {
                     count: 15, // 10 + 5
                     sum: 40.0, // 25.0 + 15.0
                     buckets: vec![
-                        Bucket { le: 0.1, count: 7 }, // 5 + 2
-                        Bucket { le: 0.5, count: 4 }, // New from metric2
-                        Bucket { le: 1.0, count: 8 }, // Only from metric1
+                        Bucket { le: 0.1, count: 7 }, 
+                        Bucket { le: 0.5, count: 4 }, 
+                        Bucket { le: 1.0, count: 8 }, 
+                        Bucket { le: 2.0, count: 4 }, 
                         Bucket {
                             le: f64::INFINITY,
                             count: 15,
