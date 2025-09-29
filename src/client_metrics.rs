@@ -1356,10 +1356,10 @@ mod clock_tests {
                     count: 15, // 10 + 5
                     sum: 40.0, // 25.0 + 15.0
                     buckets: vec![
-                        Bucket { le: 0.1, count: 7 }, 
-                        Bucket { le: 0.5, count: 4 }, 
-                        Bucket { le: 1.0, count: 8 }, 
-                        Bucket { le: 2.0, count: 4 }, 
+                        Bucket { le: 0.1, count: 7 },
+                        Bucket { le: 0.5, count: 4 },
+                        Bucket { le: 1.0, count: 8 },
+                        Bucket { le: 2.0, count: 4 },
                         Bucket {
                             le: f64::INFINITY,
                             count: 15,
