@@ -269,24 +269,6 @@ impl MergeMut for BucketMetricSample {
         self.count += other.count;
         self.sum += other.sum;
 
-        // Optimized for the common case where both samples have the same bucket boundaries
-        // (same le values in the same order), which is typical for metrics from the same histogram
-        if self.buckets.len() == other.buckets.len() {
-            let same_buckets = self
-                .buckets
-                .iter()
-                .zip(&other.buckets)
-                .all(|(a, b)| a.le == b.le);
-
-            if same_buckets {
-                for (self_bucket, other_bucket) in self.buckets.iter_mut().zip(other.buckets) {
-                    self_bucket.count += other_bucket.count;
-                }
-                return;
-            }
-        }
-
-        // Slow path: buckets don't match
         for bucket in other.buckets {
             if let Some(existing) = self.buckets.iter_mut().find(|b| b.le == bucket.le) {
                 existing.count += bucket.count;
