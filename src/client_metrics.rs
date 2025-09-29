@@ -185,12 +185,7 @@ pub struct Bucket {
 
 impl PartialEq for Bucket {
     fn eq(&self, other: &Self) -> bool {
-        let le_equal = if self.le.is_infinite() && other.le.is_infinite() {
-            true
-        } else {
-            (self.le - other.le).abs() < f64::EPSILON
-        };
-        le_equal && self.count == other.count
+        self.le == other.le && self.count == other.count
     }
 }
 
@@ -271,9 +266,7 @@ impl MergeMut for BucketMetricSample {
         // Optimized for the common case where both samples have the same bucket boundaries
         // (same le values in the same order), which is typical for metrics from the same histogram
         if self.buckets.len() == other.buckets.len() {
-            let same_buckets = self.buckets.iter().zip(&other.buckets).all(|(a, b)| {
-                (a.le.is_infinite() && b.le.is_infinite()) || (a.le - b.le).abs() < f64::EPSILON
-            });
+            let same_buckets = self.buckets.iter().zip(&other.buckets).all(|(a, b)| a.le == b.le);
 
             if same_buckets {
                 for (self_bucket, other_bucket) in self.buckets.iter_mut().zip(other.buckets) {
@@ -285,10 +278,7 @@ impl MergeMut for BucketMetricSample {
 
         // Slow path: buckets don't match
         for bucket in other.buckets {
-            if let Some(existing) = self.buckets.iter_mut().find(|b| {
-                (b.le.is_infinite() && bucket.le.is_infinite())
-                    || (b.le - bucket.le).abs() < f64::EPSILON
-            }) {
+            if let Some(existing) = self.buckets.iter_mut().find(|b| b.le == bucket.le) {
                 existing.count += bucket.count;
             } else {
                 self.buckets.push(bucket);
