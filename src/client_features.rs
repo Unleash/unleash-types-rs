@@ -338,6 +338,7 @@ impl Ord for Variant {
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub id: i32,
+    pub name: Option<String>,
     pub constraints: Vec<Constraint>,
 }
 
@@ -1008,6 +1009,7 @@ mod tests {
             features: vec![],
             segments: Some(vec![
                 Segment {
+                    name: Some("My segment".into()),
                     constraints: vec![Constraint {
                         case_insensitive: false,
                         values: None,
@@ -1019,6 +1021,7 @@ mod tests {
                     id: 1,
                 },
                 Segment {
+                    name: Some("My segment".into()),
                     constraints: vec![Constraint {
                         case_insensitive: false,
                         values: None,
@@ -1038,6 +1041,7 @@ mod tests {
             features: vec![],
             segments: Some(vec![
                 Segment {
+                    name: Some("My segment".into()),
                     constraints: vec![Constraint {
                         case_insensitive: false,
                         values: None,
@@ -1049,6 +1053,7 @@ mod tests {
                     id: 1,
                 },
                 Segment {
+                    name: Some("My segment".into()),
                     constraints: vec![Constraint {
                         case_insensitive: false,
                         values: None,
