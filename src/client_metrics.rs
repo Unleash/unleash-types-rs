@@ -200,8 +200,8 @@ impl PartialOrd for Bucket {
 impl Ord for Bucket {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.le
-            .partial_cmp(&other.le)
-            .unwrap_or(std::cmp::Ordering::Equal)
+            .total_cmp(&other.le)
+            .then_with(|| self.count.cmp(&other.count))
     }
 }
 
@@ -266,7 +266,11 @@ impl MergeMut for BucketMetricSample {
         // Optimized for the common case where both samples have the same bucket boundaries
         // (same le values in the same order), which is typical for metrics from the same histogram
         if self.buckets.len() == other.buckets.len() {
-            let same_buckets = self.buckets.iter().zip(&other.buckets).all(|(a, b)| a.le == b.le);
+            let same_buckets = self
+                .buckets
+                .iter()
+                .zip(&other.buckets)
+                .all(|(a, b)| a.le == b.le);
 
             if same_buckets {
                 for (self_bucket, other_bucket) in self.buckets.iter_mut().zip(other.buckets) {
