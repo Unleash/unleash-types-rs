@@ -9,7 +9,7 @@ use utoipa::ToSchema;
 
 use crate::{Merge, MergeMut};
 
-type MetricLabels = Option<BTreeMap<String, String>>;
+type MetricLabels = BTreeMap<String, String>;
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
@@ -246,7 +246,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct BucketMetricSample {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub labels: MetricLabels,
+    pub labels: Option<MetricLabels>,
     pub count: u64,
     pub sum: f64,
     pub buckets: Vec<Bucket>,
@@ -304,7 +304,7 @@ impl MergeMut for BucketMetricSample {
 pub struct NumericMetricSample {
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub labels: MetricLabels,
+    pub labels: Option<MetricLabels>,
 }
 
 impl PartialEq for NumericMetricSample {
@@ -420,7 +420,9 @@ impl MergeMut for ImpactMetric {
                 merge_histogram_samples(self_samples, other_samples);
             }
             _ => {
-                // Mismatched types - shouldn't happen in practice
+                println!(
+                    "Warning: Mismatched ImpactMetric types during merge - this shouldn't happen in practice"
+                );
             }
         }
     }
@@ -435,7 +437,7 @@ impl MergeMut for ImpactMetricEnv {
 fn merge_and_deduplicate_samples<T, F>(
     self_samples: &mut Vec<T>,
     other_samples: Vec<T>,
-    get_labels: fn(&T) -> &MetricLabels, // needed due to nonstructural typing
+    get_labels: fn(&T) -> &Option<MetricLabels>, // needed due to nonstructural typing
     merge_duplicates: F,
 ) where
     F: Fn(&mut T, T),
@@ -1304,7 +1306,6 @@ mod clock_tests {
         };
 
         let json_string = serde_json::to_string(&histogram_metric).unwrap();
-        println!("Histogram JSON: {}", json_string);
         let deserialized: ImpactMetric = serde_json::from_str(&json_string).unwrap();
 
         assert_eq!(deserialized, histogram_metric);
