@@ -622,6 +622,9 @@ impl ClientFeatures {
         }
 
         features.sort();
+        if let Some(s) = segments.as_mut() {
+            s.sort();
+        }
     }
 }
 
@@ -963,6 +966,78 @@ mod tests {
         let serialized_final_features = to_string(&updated_features.features).unwrap();
 
         assert_eq!(serialized_delta_updates, serialized_final_features);
+    }
+
+    #[test]
+    pub fn apply_delta_sorts_segments() {
+        let delta = ClientFeaturesDelta {
+            events: vec![
+                DeltaEvent::SegmentUpdated {
+                    event_id: 2,
+                    segment: Segment {
+                        id: 2,
+                        constraints: vec![],
+                    },
+                },
+                DeltaEvent::SegmentUpdated {
+                    event_id: 1,
+                    segment: Segment {
+                        id: 1,
+                        constraints: vec![],
+                    },
+                },
+            ],
+        };
+
+        let mut client_features = ClientFeatures::default();
+        client_features.apply_delta(&delta);
+
+        let segments = client_features
+            .segments
+            .expect("segments should be present");
+        assert_eq!(segments.len(), 2);
+        assert_eq!(segments[0].id, 1);
+        assert_eq!(segments[1].id, 2);
+    }
+
+    #[test]
+    pub fn apply_delta_sorts_existing_segments_after_update() {
+        let mut client_features = ClientFeatures {
+            version: 2,
+            features: vec![],
+            segments: Some(vec![
+                Segment {
+                    id: 3,
+                    constraints: vec![],
+                },
+                Segment {
+                    id: 1,
+                    constraints: vec![],
+                },
+            ]),
+            query: None,
+            meta: None,
+        };
+
+        let delta = ClientFeaturesDelta {
+            events: vec![DeltaEvent::SegmentUpdated {
+                event_id: 1,
+                segment: Segment {
+                    id: 2,
+                    constraints: vec![],
+                },
+            }],
+        };
+
+        client_features.apply_delta(&delta);
+
+        let segments = client_features
+            .segments
+            .expect("segments should be present");
+        assert_eq!(segments.len(), 3);
+        assert_eq!(segments[0].id, 1);
+        assert_eq!(segments[1].id, 2);
+        assert_eq!(segments[2].id, 3);
     }
 
     #[test]
