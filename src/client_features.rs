@@ -992,7 +992,9 @@ mod tests {
         let mut client_features = ClientFeatures::default();
         client_features.apply_delta(&delta);
 
-        let segments = client_features.segments.expect("segments should be present");
+        let segments = client_features
+            .segments
+            .expect("segments should be present");
         assert_eq!(segments.len(), 2);
         assert_eq!(segments[0].id, 1);
         assert_eq!(segments[1].id, 2);
@@ -1029,7 +1031,9 @@ mod tests {
 
         client_features.apply_delta(&delta);
 
-        let segments = client_features.segments.expect("segments should be present");
+        let segments = client_features
+            .segments
+            .expect("segments should be present");
         assert_eq!(segments.len(), 3);
         assert_eq!(segments[0].id, 1);
         assert_eq!(segments[1].id, 2);
