@@ -27,7 +27,7 @@ utoipa = { version = "5", optional = true, features = ["chrono"] }
 xxhash-rust = { version = "0.8.15", features = ["xxh3"], optional = true }
 [dev-dependencies]
 criterion = "0.8.2"
-serde_qs = "0.15.0"
+serde_qs = "1.0.0"
 test-case = "3.3.1"
 
 [[bench]]
