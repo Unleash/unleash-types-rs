@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.22](https://github.com/Unleash/unleash-types-rs/compare/v0.15.21...v0.15.22) - 2026-02-04
+
+### 🐛 Bug Fixes
+- force segment ordering in delta event application ([#136](https://github.com/unleash/unleash-types-rs/issues/136)) (by @sighphyre) - #136
+
+### Dependency updates
+- bump chrono from 0.4.42 to 0.4.43 ([#134](https://github.com/unleash/unleash-types-rs/issues/134)) (by @dependabot[bot]) - #134
+- bump actions/checkout from 4 to 6 ([#127](https://github.com/unleash/unleash-types-rs/issues/127)) (by @dependabot[bot]) - #127
+
+### Contributors
+
+* @sighphyre
+* @dependabot[bot]
+
 ## [0.15.21](https://github.com/Unleash/unleash-types-rs/compare/v0.15.20...v0.15.21) - 2025-09-29
 
 ### 🚀 Features
