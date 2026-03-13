@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.23](https://github.com/Unleash/unleash-types-rs/compare/v0.15.22...v0.15.23) - 2026-03-13
+
+### 🚀 Features
+- add semver gte, semver lte and cidr matching constraints ([#143](https://github.com/unleash/unleash-types-rs/issues/143)) (by @sighphyre) - #143
+
+### Contributors
+
+* @sighphyre
+
 ## [0.15.22](https://github.com/Unleash/unleash-types-rs/compare/v0.15.21...v0.15.22) - 2026-02-04
 
 ### 🐛 Bug Fixes
