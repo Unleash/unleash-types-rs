@@ -49,6 +49,9 @@ pub enum Operator {
     SemverEq,
     SemverLt,
     SemverGt,
+    SemverLte,
+    InCidr,
+    SemverGte,
     RegexMatch,
     Unknown(String),
 }
@@ -197,7 +200,10 @@ impl<'de> Deserialize<'de> for Operator {
             "SEMVER_EQ" => Operator::SemverEq,
             "SEMVER_LT" => Operator::SemverLt,
             "SEMVER_GT" => Operator::SemverGt,
+            "SEMVER_LTE" => Operator::SemverLte,
+            "SEMVER_GTE" => Operator::SemverGte,
             "REGEX" => Operator::RegexMatch,
+            "IN_CIDR" => Operator::InCidr,
             _ => Operator::Unknown(s),
         })
     }
