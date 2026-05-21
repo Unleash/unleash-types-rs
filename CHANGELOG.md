@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0](https://github.com/Unleash/unleash-types-rs/compare/v0.15.23...v0.16.0) - 2026-05-21
+
+### 🚀 Features
+- *(breaking)* [**breaking**] allow metrics to be optional ([#150](https://github.com/unleash/unleash-types-rs/issues/150)) (by @sighphyre)
+
+### Contributors
+
+* @sighphyre
+
 ## [0.15.23](https://github.com/Unleash/unleash-types-rs/compare/v0.15.22...v0.15.23) - 2026-03-13
 
 ### 🚀 Features
