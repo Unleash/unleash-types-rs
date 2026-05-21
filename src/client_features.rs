@@ -52,6 +52,7 @@ pub enum Operator {
     SemverLte,
     InCidr,
     SemverGte,
+    #[serde(rename = "REGEX")]
     RegexMatch,
     Unknown(String),
 }
@@ -1213,5 +1214,21 @@ mod tests {
         assert_eq!(meta.etag, Some("\"537b2ba0:3726\"".into()));
         assert_eq!(meta.revision_id, Some(3726));
         assert_eq!(meta.query_hash, Some("537b2ba0".into()));
+    }
+
+    #[test]
+    pub fn regex_constraint_serializes_and_deserializes_symmetrically() {
+        let constraint = Constraint {
+            context_name: "test".into(),
+            operator: Operator::RegexMatch,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: Some("^[a-z]+$".into()),
+        };
+        let serialized = serde_json::to_string(&constraint).unwrap();
+        assert!(serialized.contains("REGEX"));
+        let deserialized: Constraint = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.operator, Operator::RegexMatch);
     }
 }
