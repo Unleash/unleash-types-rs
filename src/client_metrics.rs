@@ -100,7 +100,7 @@ pub fn from_bucket_app_name_and_env(
 #[serde(rename_all = "camelCase")]
 pub struct ClientMetrics {
     pub app_name: String,
-    pub bucket: MetricBucket,
+    pub bucket: Option<MetricBucket>,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
@@ -625,11 +625,11 @@ mod tests {
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             impact_metrics: Some(impact_metrics.clone()),
-            bucket: MetricBucket {
+            bucket: Some(MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 toggles: HashMap::new(),
-            },
+            }),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
                 sdk_type: Some(SdkType::Backend),
@@ -714,8 +714,28 @@ mod tests {
           }
         "#;
         let metrics: ClientMetrics = serde_json::from_str(serialized_metrics).unwrap();
-        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().yes, 1);
-        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().no, 0);
+        assert_eq!(
+            metrics
+                .bucket
+                .as_ref()
+                .unwrap()
+                .toggles
+                .get("some-feature")
+                .unwrap()
+                .yes,
+            1
+        );
+        assert_eq!(
+            metrics
+                .bucket
+                .as_ref()
+                .unwrap()
+                .toggles
+                .get("some-feature")
+                .unwrap()
+                .no,
+            0
+        );
     }
 
     #[test]
@@ -822,11 +842,11 @@ mod tests {
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             impact_metrics: None,
-            bucket: MetricBucket {
+            bucket: Some(MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 toggles: HashMap::new(),
-            },
+            }),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
                 sdk_type: Some(SdkType::Backend),
@@ -1391,5 +1411,55 @@ mod clock_tests {
         assert!(bucket_2 < bucket_3);
         assert!(bucket_3 < bucket_inf);
         assert!(bucket_1 < bucket_inf);
+    }
+
+    #[test]
+    fn metrics_allow_either_bucket_or_impact_metrics_to_be_missing() {
+        let metrics_with_no_data = ClientMetrics {
+            app_name: "test-app".into(),
+            environment: Some("test-env".into()),
+            instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
+            metadata: MetricsMetadata::default(),
+            bucket: None,
+            impact_metrics: None,
+        };
+
+        let metrics_with_impact_metrics = ClientMetrics {
+            impact_metrics: Some(vec![ImpactMetric::Counter {
+                name: "test_counter".into(),
+                help: "Test counter metric".into(),
+                samples: vec![NumericMetricSample {
+                    value: 10.0,
+                    labels: None,
+                }],
+            }]),
+            ..metrics_with_no_data.clone()
+        };
+
+        let metrics_with_base_metrics_data = ClientMetrics {
+            bucket: Some(MetricBucket {
+                start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                toggles: HashMap::new(),
+            }),
+            ..metrics_with_no_data.clone()
+        };
+
+        let deserialized_metrics_with_no_data = serde_json::to_string(&metrics_with_no_data)
+            .expect("Failed to write metrics with no data to JSON");
+        let deserialized_metrics_with_impact_metrics =
+            serde_json::to_string(&metrics_with_impact_metrics)
+                .expect("Failed to write metrics with impact metrics to JSON");
+        let deserialized_metrics_with_base_metrics_data =
+            serde_json::to_string(&metrics_with_base_metrics_data)
+                .expect("Failed to write metrics with base metrics data to JSON");
+
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_no_data)
+            .expect("Failed to read metrics with no data from JSON");
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_impact_metrics)
+            .expect("Failed to read metrics with impact metrics from JSON");
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_base_metrics_data)
+            .expect("Failed to read metrics with base metrics data from JSON");
     }
 }
