@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.1](https://github.com/Unleash/unleash-types-rs/compare/v0.16.0...v0.16.1) - 2026-05-21
+
+### 🐛 Bug Fixes
+- make regex constraint serialize correctly so that it can be deserialized ([#152](https://github.com/unleash/unleash-types-rs/issues/152)) (by @sighphyre) - #152
+
+### Contributors
+
+* @sighphyre
+
 ## [0.16.0](https://github.com/Unleash/unleash-types-rs/compare/v0.15.23...v0.16.0) - 2026-05-21
 
 ### 🚀 Features
