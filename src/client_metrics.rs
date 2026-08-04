@@ -170,6 +170,8 @@ pub struct MetricsMetadata {
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
+    pub sdk_flavor: Option<String>,
+    pub sdk_flavor_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
