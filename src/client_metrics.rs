@@ -604,7 +604,10 @@ impl Merge for ClientApplication {
                     .platform_version
                     .or(other.metadata.platform_version),
                 sdk_flavor: self.metadata.sdk_flavor.or(other.metadata.sdk_flavor),
-                sdk_flavor_version: self.metadata.sdk_flavor_version.or(other.metadata.sdk_flavor_version),
+                sdk_flavor_version: self
+                    .metadata
+                    .sdk_flavor_version
+                    .or(other.metadata.sdk_flavor_version),
             },
         }
     }
@@ -938,7 +941,7 @@ mod tests {
     fn sdk_flavor_is_omitted_when_absent() {
         let json = serde_json::to_string(&MetricsMetadata::default()).unwrap();
 
-        // skip_serializing_if stops 'null' from being sent, 
+        // skip_serializing_if stops 'null' from being sent,
         // so schema, doesn't reject the payload
         assert!(!json.contains(r#""sdkFlavor""#));
         assert!(!json.contains(r#""sdkFlavorVersion""#));
