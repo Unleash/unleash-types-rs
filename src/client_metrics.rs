@@ -170,7 +170,9 @@ pub struct MetricsMetadata {
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sdk_flavor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sdk_flavor_version: Option<String>,
 }
 
