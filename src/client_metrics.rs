@@ -919,6 +919,48 @@ mod tests {
         let json_string = serde_json::to_string(&metrics).unwrap();
         assert_eq!(json_string, expected_registration);
     }
+
+    #[test]
+    fn sdk_flavor_serializes_as_camel_case_when_present() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let json = serde_json::to_string(&metadata).unwrap();
+
+        assert!(json.contains(r#""sdkFlavor":"unleash-openfeature-rust-provider""#));
+        assert!(json.contains(r#""sdkFlavorVersion":"1.3.0""#));
+    }
+
+    #[test]
+    fn sdk_flavor_is_omitted_when_absent() {
+        let json = serde_json::to_string(&MetricsMetadata::default()).unwrap();
+
+        // skip_serializing_if stops 'null' from being sent, 
+        // so schema, doesn't reject the payload
+        assert!(!json.contains(r#""sdkFlavor""#));
+        assert!(!json.contains(r#""sdkFlavorVersion""#));
+    }
+
+    #[test]
+    fn sdk_flavor_round_trips_through_json() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let deserialized: MetricsMetadata =
+            serde_json::from_str(&serde_json::to_string(&metadata).unwrap()).unwrap();
+
+        assert_eq!(
+            deserialized.sdk_flavor.as_deref(),
+            Some("unleash-openfeature-rust-provider"),
+        );
+        assert_eq!(deserialized.sdk_flavor_version.as_deref(), Some("1.3.0"));
+    }
 }
 
 #[cfg(test)]
