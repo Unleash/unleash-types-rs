@@ -510,6 +510,8 @@ impl ClientApplication {
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         }
     }
@@ -599,6 +601,8 @@ impl Merge for ClientApplication {
                     .metadata
                     .platform_version
                     .or(other.metadata.platform_version),
+                sdk_flavor: self.metadata.sdk_flavor.or(other.metadata.sdk_flavor),
+                sdk_flavor_version: self.metadata.sdk_flavor_version.or(other.metadata.sdk_flavor_version),
             },
         }
     }
@@ -638,6 +642,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: Some("rust-1.3.0".into()),
+                sdk_flavor_version: Some("1.7.9".into()),,
             },
         };
 
@@ -855,6 +861,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: Some("1.7.9".into()),
+                sdk_flavor_version: Some("1.7.9".into()),
             },
         };
 
@@ -897,6 +905,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: Some("1.7.9".into()),
+                sdk_flavor_version: Some("1.7.9".into()),
             },
             connect_via: None,
             interval: 15000,
