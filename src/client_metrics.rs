@@ -644,8 +644,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
-                sdk_flavor: Some("rust-1.3.0".into()),
-                sdk_flavor_version: Some("1.7.9".into()),,
+                sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+                sdk_flavor_version: Some("1.3.0".into()),
             },
         };
 
@@ -863,8 +863,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
-                sdk_flavor: Some("1.7.9".into()),
-                sdk_flavor_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         };
 
@@ -907,8 +907,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
-                sdk_flavor: Some("1.7.9".into()),
-                sdk_flavor_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
             connect_via: None,
             interval: 15000,
