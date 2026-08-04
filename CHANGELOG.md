@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.2](https://github.com/Unleash/unleash-types-rs/compare/v0.16.1...v0.16.2) - 2026-08-04
+
+### 🚀 Features
+- add SDK flavor metadata to MetricsMetadata ([#155](https://github.com/unleash/unleash-types-rs/issues/155)) (by @irstavr) - #155
+
+### Contributors
+
+* @irstavr
+
 ## [0.16.1](https://github.com/Unleash/unleash-types-rs/compare/v0.16.0...v0.16.1) - 2026-05-21
 
 ### 🐛 Bug Fixes
