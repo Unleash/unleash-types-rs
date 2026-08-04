@@ -170,6 +170,10 @@ pub struct MetricsMetadata {
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdk_flavor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdk_flavor_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -508,6 +512,8 @@ impl ClientApplication {
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         }
     }
@@ -597,6 +603,11 @@ impl Merge for ClientApplication {
                     .metadata
                     .platform_version
                     .or(other.metadata.platform_version),
+                sdk_flavor: self.metadata.sdk_flavor.or(other.metadata.sdk_flavor),
+                sdk_flavor_version: self
+                    .metadata
+                    .sdk_flavor_version
+                    .or(other.metadata.sdk_flavor_version),
             },
         }
     }
@@ -636,6 +647,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+                sdk_flavor_version: Some("1.3.0".into()),
             },
         };
 
@@ -853,6 +866,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         };
 
@@ -895,6 +910,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
             connect_via: None,
             interval: 15000,
@@ -904,6 +921,48 @@ mod tests {
 
         let json_string = serde_json::to_string(&metrics).unwrap();
         assert_eq!(json_string, expected_registration);
+    }
+
+    #[test]
+    fn sdk_flavor_serializes_as_camel_case_when_present() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let json = serde_json::to_string(&metadata).unwrap();
+
+        assert!(json.contains(r#""sdkFlavor":"unleash-openfeature-rust-provider""#));
+        assert!(json.contains(r#""sdkFlavorVersion":"1.3.0""#));
+    }
+
+    #[test]
+    fn sdk_flavor_is_omitted_when_absent() {
+        let json = serde_json::to_string(&MetricsMetadata::default()).unwrap();
+
+        // skip_serializing_if stops 'null' from being sent,
+        // so schema, doesn't reject the payload
+        assert!(!json.contains(r#""sdkFlavor""#));
+        assert!(!json.contains(r#""sdkFlavorVersion""#));
+    }
+
+    #[test]
+    fn sdk_flavor_round_trips_through_json() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let deserialized: MetricsMetadata =
+            serde_json::from_str(&serde_json::to_string(&metadata).unwrap()).unwrap();
+
+        assert_eq!(
+            deserialized.sdk_flavor.as_deref(),
+            Some("unleash-openfeature-rust-provider"),
+        );
+        assert_eq!(deserialized.sdk_flavor_version.as_deref(), Some("1.3.0"));
     }
 }
 
