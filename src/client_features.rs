@@ -1,20 +1,22 @@
 #[cfg(feature = "hashes")]
 use base64::Engine;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::{cmp::Ordering, collections::BTreeMap};
-#[cfg(feature = "openapi")]
-use utoipa::{IntoParams, ToSchema};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use std::{cmp::Ordering, collections::BTreeMap};
+#[cfg(feature = "wasm-types")]
+use tsify::Tsify;
+#[cfg(feature = "openapi")]
+use utoipa::{IntoParams, ToSchema};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
 use crate::{Deduplicate, Merge, Upsert};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
@@ -31,6 +33,7 @@ pub struct Query {
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
@@ -58,6 +61,7 @@ pub enum Operator {
 }
 
 #[derive(Serialize, Debug, Clone)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
@@ -211,6 +215,7 @@ impl<'de> Deserialize<'de> for Operator {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Constraint {
@@ -227,6 +232,7 @@ pub struct Constraint {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub enum WeightType {
@@ -235,6 +241,7 @@ pub enum WeightType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Strategy {
@@ -289,6 +296,7 @@ impl Ord for Strategy {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Override {
@@ -297,13 +305,16 @@ pub struct Override {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct Payload {
     #[serde(rename = "type")]
     pub payload_type: String,
     pub value: String,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Variant {
@@ -320,6 +331,7 @@ pub struct Variant {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct StrategyVariant {
@@ -343,6 +355,7 @@ impl Ord for Variant {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
@@ -375,6 +388,7 @@ impl Hash for Segment {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureDependency {
@@ -386,6 +400,7 @@ pub struct FeatureDependency {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Default)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientFeature {
@@ -395,8 +410,10 @@ pub struct ClientFeature {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub created_at: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub last_seen_at: Option<DateTime<Utc>>,
     pub enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -414,6 +431,7 @@ pub struct ClientFeature {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Meta {
@@ -499,6 +517,7 @@ impl Hash for ClientFeature {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
     pub version: u32,
@@ -524,6 +543,7 @@ impl ClientFeatures {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "kebab-case")]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub enum DeltaEvent {
     /// Event for a feature update.
@@ -572,6 +592,7 @@ impl DeltaEvent {
 /// Schema for delta updates of feature configurations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeaturesDelta {
     /// A list of delta events.
