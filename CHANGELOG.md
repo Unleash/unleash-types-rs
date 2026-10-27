@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.3](https://github.com/Unleash/unleash-types-rs/compare/v0.16.2...v0.16.3) - 2026-10-27
+
+### 🚀 Features
+- TS type gen - behind a flag ([#157](https://github.com/unleash/unleash-types-rs/issues/157)) (by @sighphyre) - #157
+
+### Contributors
+
+* @sighphyre
+
 ## [0.16.2](https://github.com/Unleash/unleash-types-rs/compare/v0.16.1...v0.16.2) - 2026-08-04
 
 ### 🚀 Features
