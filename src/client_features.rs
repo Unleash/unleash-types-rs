@@ -62,6 +62,7 @@ pub enum Operator {
 
 #[derive(Serialize, Debug, Clone)]
 #[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
@@ -242,6 +243,7 @@ pub enum WeightType {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 #[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Strategy {
@@ -518,6 +520,7 @@ impl Hash for ClientFeature {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
     pub version: u32,
