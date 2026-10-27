@@ -7,11 +7,16 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
+#[cfg(feature = "wasm-types")]
+use tsify::Tsify;
+
 use crate::{Merge, MergeMut};
 
 type MetricLabels = BTreeMap<String, String>;
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
     #[builder(default = "0")]
@@ -65,9 +70,13 @@ impl ToggleStats {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub start: DateTime<Utc>,
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub stop: DateTime<Utc>,
     pub toggles: HashMap<String, ToggleStats>,
 }
