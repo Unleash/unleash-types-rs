@@ -1,20 +1,22 @@
 #[cfg(feature = "hashes")]
 use base64::Engine;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::{cmp::Ordering, collections::BTreeMap};
-#[cfg(feature = "openapi")]
-use utoipa::{IntoParams, ToSchema};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use std::{cmp::Ordering, collections::BTreeMap};
+#[cfg(feature = "wasm-types")]
+use tsify::Tsify;
+#[cfg(feature = "openapi")]
+use utoipa::{IntoParams, ToSchema};
 #[cfg(feature = "hashes")]
 use xxhash_rust::xxh3::xxh3_128;
 
 use crate::{Deduplicate, Merge, Upsert};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
@@ -31,6 +33,7 @@ pub struct Query {
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Operator {
@@ -52,11 +55,14 @@ pub enum Operator {
     SemverLte,
     InCidr,
     SemverGte,
+    #[serde(rename = "REGEX")]
     RegexMatch,
     Unknown(String),
 }
 
 #[derive(Serialize, Debug, Clone)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema, IntoParams))]
 #[cfg_attr(feature = "openapi", into_params(style = Form, parameter_in = Query))]
 #[serde(rename_all = "camelCase")]
@@ -210,6 +216,7 @@ impl<'de> Deserialize<'de> for Operator {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Constraint {
@@ -226,6 +233,7 @@ pub struct Constraint {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub enum WeightType {
@@ -234,6 +242,8 @@ pub enum WeightType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Strategy {
@@ -288,6 +298,7 @@ impl Ord for Strategy {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Override {
@@ -296,13 +307,16 @@ pub struct Override {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct Payload {
     #[serde(rename = "type")]
     pub payload_type: String,
     pub value: String,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Variant {
@@ -319,6 +333,7 @@ pub struct Variant {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct StrategyVariant {
@@ -342,6 +357,7 @@ impl Ord for Variant {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
@@ -374,6 +390,7 @@ impl Hash for Segment {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureDependency {
@@ -385,6 +402,7 @@ pub struct FeatureDependency {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Default)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ClientFeature {
@@ -394,8 +412,10 @@ pub struct ClientFeature {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub created_at: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub last_seen_at: Option<DateTime<Utc>>,
     pub enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -413,6 +433,7 @@ pub struct ClientFeature {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Meta {
@@ -498,6 +519,8 @@ impl Hash for ClientFeature {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeatures {
     pub version: u32,
@@ -523,6 +546,7 @@ impl ClientFeatures {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "kebab-case")]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub enum DeltaEvent {
     /// Event for a feature update.
@@ -571,6 +595,7 @@ impl DeltaEvent {
 /// Schema for delta updates of feature configurations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ClientFeaturesDelta {
     /// A list of delta events.
@@ -910,7 +935,7 @@ mod tests {
 
     #[test]
     pub fn can_parse_properties_map_from_get_query_string() {
-        let config = Config::new(5, false);
+        let config = Config::new().max_depth(5).use_form_encoding(true);
         let query_string =
             "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks&properties%5Bhello%5D=world";
         let context: Context = config
@@ -1213,5 +1238,21 @@ mod tests {
         assert_eq!(meta.etag, Some("\"537b2ba0:3726\"".into()));
         assert_eq!(meta.revision_id, Some(3726));
         assert_eq!(meta.query_hash, Some("537b2ba0".into()));
+    }
+
+    #[test]
+    pub fn regex_constraint_serializes_and_deserializes_symmetrically() {
+        let constraint = Constraint {
+            context_name: "test".into(),
+            operator: Operator::RegexMatch,
+            case_insensitive: false,
+            inverted: false,
+            values: None,
+            value: Some("^[a-z]+$".into()),
+        };
+        let serialized = serde_json::to_string(&constraint).unwrap();
+        assert!(serialized.contains("REGEX"));
+        let deserialized: Constraint = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.operator, Operator::RegexMatch);
     }
 }

@@ -7,11 +7,16 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 
+#[cfg(feature = "wasm-types")]
+use tsify::Tsify;
+
 use crate::{Merge, MergeMut};
 
 type MetricLabels = BTreeMap<String, String>;
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, Builder)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(ToSchema))]
 pub struct ToggleStats {
     #[builder(default = "0")]
@@ -65,9 +70,13 @@ impl ToggleStats {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Builder)]
+#[cfg_attr(feature = "wasm-types", derive(Tsify))]
+#[cfg_attr(feature = "wasm-types", tsify(hashmap_as_object))]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MetricBucket {
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub start: DateTime<Utc>,
+    #[cfg_attr(feature = "wasm-types", tsify(type = "string"))]
     pub stop: DateTime<Utc>,
     pub toggles: HashMap<String, ToggleStats>,
 }
@@ -100,7 +109,7 @@ pub fn from_bucket_app_name_and_env(
 #[serde(rename_all = "camelCase")]
 pub struct ClientMetrics {
     pub app_name: String,
-    pub bucket: MetricBucket,
+    pub bucket: Option<MetricBucket>,
     pub environment: Option<String>,
     pub instance_id: Option<String>,
     pub connection_id: Option<String>,
@@ -170,6 +179,10 @@ pub struct MetricsMetadata {
     pub yggdrasil_version: Option<String>,
     pub platform_name: Option<String>,
     pub platform_version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdk_flavor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdk_flavor_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -508,6 +521,8 @@ impl ClientApplication {
                 yggdrasil_version: None,
                 platform_name: None,
                 platform_version: None,
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         }
     }
@@ -597,6 +612,11 @@ impl Merge for ClientApplication {
                     .metadata
                     .platform_version
                     .or(other.metadata.platform_version),
+                sdk_flavor: self.metadata.sdk_flavor.or(other.metadata.sdk_flavor),
+                sdk_flavor_version: self
+                    .metadata
+                    .sdk_flavor_version
+                    .or(other.metadata.sdk_flavor_version),
             },
         }
     }
@@ -625,17 +645,19 @@ mod tests {
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             impact_metrics: Some(impact_metrics.clone()),
-            bucket: MetricBucket {
+            bucket: Some(MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 toggles: HashMap::new(),
-            },
+            }),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
                 sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+                sdk_flavor_version: Some("1.3.0".into()),
             },
         };
 
@@ -714,8 +736,28 @@ mod tests {
           }
         "#;
         let metrics: ClientMetrics = serde_json::from_str(serialized_metrics).unwrap();
-        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().yes, 1);
-        assert_eq!(metrics.bucket.toggles.get("some-feature").unwrap().no, 0);
+        assert_eq!(
+            metrics
+                .bucket
+                .as_ref()
+                .unwrap()
+                .toggles
+                .get("some-feature")
+                .unwrap()
+                .yes,
+            1
+        );
+        assert_eq!(
+            metrics
+                .bucket
+                .as_ref()
+                .unwrap()
+                .toggles
+                .get("some-feature")
+                .unwrap()
+                .no,
+            0
+        );
     }
 
     #[test]
@@ -822,17 +864,19 @@ mod tests {
             instance_id: Some("test-instance-id".into()),
             connection_id: Some("test-connection-id".into()),
             impact_metrics: None,
-            bucket: MetricBucket {
+            bucket: Some(MetricBucket {
                 start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
                 toggles: HashMap::new(),
-            },
+            }),
             metadata: MetricsMetadata {
                 sdk_version: Some("rust-1.3.0".into()),
                 sdk_type: Some(SdkType::Backend),
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
         };
 
@@ -875,6 +919,8 @@ mod tests {
                 yggdrasil_version: None,
                 platform_name: Some("rustc".into()),
                 platform_version: Some("1.7.9".into()),
+                sdk_flavor: None,
+                sdk_flavor_version: None,
             },
             connect_via: None,
             interval: 15000,
@@ -884,6 +930,48 @@ mod tests {
 
         let json_string = serde_json::to_string(&metrics).unwrap();
         assert_eq!(json_string, expected_registration);
+    }
+
+    #[test]
+    fn sdk_flavor_serializes_as_camel_case_when_present() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let json = serde_json::to_string(&metadata).unwrap();
+
+        assert!(json.contains(r#""sdkFlavor":"unleash-openfeature-rust-provider""#));
+        assert!(json.contains(r#""sdkFlavorVersion":"1.3.0""#));
+    }
+
+    #[test]
+    fn sdk_flavor_is_omitted_when_absent() {
+        let json = serde_json::to_string(&MetricsMetadata::default()).unwrap();
+
+        // skip_serializing_if stops 'null' from being sent,
+        // so schema, doesn't reject the payload
+        assert!(!json.contains(r#""sdkFlavor""#));
+        assert!(!json.contains(r#""sdkFlavorVersion""#));
+    }
+
+    #[test]
+    fn sdk_flavor_round_trips_through_json() {
+        let metadata = MetricsMetadata {
+            sdk_flavor: Some("unleash-openfeature-rust-provider".into()),
+            sdk_flavor_version: Some("1.3.0".into()),
+            ..Default::default()
+        };
+
+        let deserialized: MetricsMetadata =
+            serde_json::from_str(&serde_json::to_string(&metadata).unwrap()).unwrap();
+
+        assert_eq!(
+            deserialized.sdk_flavor.as_deref(),
+            Some("unleash-openfeature-rust-provider"),
+        );
+        assert_eq!(deserialized.sdk_flavor_version.as_deref(), Some("1.3.0"));
     }
 }
 
@@ -1391,5 +1479,55 @@ mod clock_tests {
         assert!(bucket_2 < bucket_3);
         assert!(bucket_3 < bucket_inf);
         assert!(bucket_1 < bucket_inf);
+    }
+
+    #[test]
+    fn metrics_allow_either_bucket_or_impact_metrics_to_be_missing() {
+        let metrics_with_no_data = ClientMetrics {
+            app_name: "test-app".into(),
+            environment: Some("test-env".into()),
+            instance_id: Some("test-instance-id".into()),
+            connection_id: Some("test-connection-id".into()),
+            metadata: MetricsMetadata::default(),
+            bucket: None,
+            impact_metrics: None,
+        };
+
+        let metrics_with_impact_metrics = ClientMetrics {
+            impact_metrics: Some(vec![ImpactMetric::Counter {
+                name: "test_counter".into(),
+                help: "Test counter metric".into(),
+                samples: vec![NumericMetricSample {
+                    value: 10.0,
+                    labels: None,
+                }],
+            }]),
+            ..metrics_with_no_data.clone()
+        };
+
+        let metrics_with_base_metrics_data = ClientMetrics {
+            bucket: Some(MetricBucket {
+                start: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                stop: DateTime::<Utc>::from_timestamp(1000, 0).unwrap(),
+                toggles: HashMap::new(),
+            }),
+            ..metrics_with_no_data.clone()
+        };
+
+        let deserialized_metrics_with_no_data = serde_json::to_string(&metrics_with_no_data)
+            .expect("Failed to write metrics with no data to JSON");
+        let deserialized_metrics_with_impact_metrics =
+            serde_json::to_string(&metrics_with_impact_metrics)
+                .expect("Failed to write metrics with impact metrics to JSON");
+        let deserialized_metrics_with_base_metrics_data =
+            serde_json::to_string(&metrics_with_base_metrics_data)
+                .expect("Failed to write metrics with base metrics data to JSON");
+
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_no_data)
+            .expect("Failed to read metrics with no data from JSON");
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_impact_metrics)
+            .expect("Failed to read metrics with impact metrics from JSON");
+        serde_json::from_str::<ClientMetrics>(&deserialized_metrics_with_base_metrics_data)
+            .expect("Failed to read metrics with base metrics data from JSON");
     }
 }
