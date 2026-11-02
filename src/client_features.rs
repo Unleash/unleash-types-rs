@@ -935,7 +935,7 @@ mod tests {
 
     #[test]
     pub fn can_parse_properties_map_from_get_query_string() {
-        let config = Config::new(5, false);
+        let config = Config::new().max_depth(5).use_form_encoding(true);
         let query_string =
             "userId=123123&properties[email]=test@test.com&properties%5BcompanyId%5D=bricks&properties%5Bhello%5D=world";
         let context: Context = config
