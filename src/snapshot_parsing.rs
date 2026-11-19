@@ -106,7 +106,7 @@ mod tests {
             "features": [
                 {
                     "name": "broken_feature",
-                    "enabled": "yes please"
+                    "enabled": "broken because this is not a boolean"
                 },
                 {
                     "name": "healthy_feature",
