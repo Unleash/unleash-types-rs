@@ -1,5 +1,6 @@
 pub mod client_features;
 pub mod client_metrics;
+pub mod feature_sanitizing;
 pub mod frontend;
 use std::{collections::HashSet, hash::Hash};
 
