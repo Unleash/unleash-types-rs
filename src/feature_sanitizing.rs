@@ -99,14 +99,14 @@ mod tests {
     }
 
     #[test]
-    fn test_an_unparsable_feature_does_not_reject_but_contains_bad_feature() {
+    fn test_an_unparsable_feature_does_not_reject_and_its_reported_in_invalid_features() {
         let raw_json = r#"
         {
             "version": 1,
             "features": [
                 {
                     "name": "broken_feature",
-                    "enabled": "yes please"
+                    "enabled": "broken because this is not a boolean"
                 },
                 {
                     "name": "healthy_feature",
