@@ -21,12 +21,12 @@ pub struct WireClientsFeatures {
     meta: Option<Meta>,
 }
 
-pub struct Snapshot {
-    pub features: ClientFeatures,
-    pub rejections: HashSet<String>,
+pub struct SanitizedFeatures {
+    pub valid_features: ClientFeatures,
+    pub rejected_features: HashSet<String>,
 }
 
-impl TryFrom<WireClientsFeatures> for Snapshot {
+impl TryFrom<WireClientsFeatures> for SanitizedFeatures {
     type Error = serde_json::Error;
 
     fn try_from(wire: WireClientsFeatures) -> Result<Self, Self::Error> {
@@ -59,15 +59,15 @@ impl TryFrom<WireClientsFeatures> for Snapshot {
             }
         }
 
-        Ok(Snapshot {
-            features: ClientFeatures {
+        Ok(SanitizedFeatures {
+            valid_features: ClientFeatures {
                 features,
                 version: wire.version,
                 segments: wire.segments,
                 query: wire.query,
                 meta: wire.meta,
             },
-            rejections,
+            rejected_features: rejections,
         })
     }
 }
@@ -94,7 +94,7 @@ mod tests {
         "#;
 
         let wire: WireClientsFeatures = serde_json::from_str(raw_json).unwrap();
-        let snapshot = Snapshot::try_from(wire);
+        let snapshot = SanitizedFeatures::try_from(wire);
         assert!(snapshot.is_err());
     }
 
@@ -122,13 +122,13 @@ mod tests {
         let wire: WireClientsFeatures =
             serde_json::from_str(raw_json).expect("Unparsable JSON, oops you broke the test");
         let snapshot =
-            Snapshot::try_from(wire).expect("Bad snapshot, did you break type contract?");
+            SanitizedFeatures::try_from(wire).expect("Bad snapshot, did you break type contract?");
 
-        assert!(snapshot.rejections.contains("broken_feature"));
-        assert!(!snapshot.rejections.contains("healthy_feature"));
+        assert!(snapshot.rejected_features.contains("broken_feature"));
+        assert!(!snapshot.rejected_features.contains("healthy_feature"));
 
         assert!(snapshot
-            .features
+            .valid_features
             .features
             .iter()
             .any(|f| f.name == "healthy_feature"));
@@ -158,9 +158,23 @@ mod tests {
         let wire: WireClientsFeatures =
             serde_json::from_str(&raw_json).expect("Failed to parse JSON");
 
-        let snapshot = Snapshot::try_from(wire).expect("Failed to create snapshot");
-        let parsed_and_scrubbed = snapshot.features;
+        let snapshot = SanitizedFeatures::try_from(wire).expect("Failed to create snapshot");
+        let parsed_and_scrubbed = snapshot.valid_features;
+
+        // We're trying to check that Edge will keep a stable etag here, not that
+        // our xx3 hash is correctly upheld. Because Edge doesn't use the xx3 hash
+        // implementation and instead goes directly via byte buffer hashing, there's
+        // no point in validating against that. Means we also don't actually need a hash
+        // byte level equivalence is enough.
+        //
+        // This is super fragile, and needs to be fixed upstream in Edge,
+        // seems to be caused by the Axum rewrite
+        let direct_byte_buffer = serde_json::to_vec(&parsed_and_scrubbed)
+            .expect("Failed to serialize parsed and scrubbed features");
+        let indirect_byte_buffer =
+            serde_json::to_vec(&parsed).expect("Failed to serialize snapshot");
 
         assert_eq!(parsed, parsed_and_scrubbed);
+        assert_eq!(direct_byte_buffer, indirect_byte_buffer);
     }
 }

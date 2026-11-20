@@ -1,7 +1,7 @@
 pub mod client_features;
 pub mod client_metrics;
 pub mod frontend;
-pub mod snapshot_parsing;
+pub mod feature_sanitizing;
 use std::{collections::HashSet, hash::Hash};
 
 pub trait Merge {
