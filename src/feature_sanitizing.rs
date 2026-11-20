@@ -11,7 +11,7 @@ use crate::client_features::{ClientFeature, ClientFeatures, Meta, Query, Segment
 // If you're ever tempted to put serialize, clone or hash on this or expose any of the fields
 // you're almost certainly doing something wrong
 #[derive(Deserialize)]
-pub struct WireClientsFeatures {
+pub struct WireClientFeatures {
     version: u32,
     features: Vec<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,10 +26,10 @@ pub struct SanitizedFeatures {
     pub rejected_features: HashSet<String>,
 }
 
-impl TryFrom<WireClientsFeatures> for SanitizedFeatures {
+impl TryFrom<WireClientFeatures> for SanitizedFeatures {
     type Error = serde_json::Error;
 
-    fn try_from(wire: WireClientsFeatures) -> Result<Self, Self::Error> {
+    fn try_from(wire: WireClientFeatures) -> Result<Self, Self::Error> {
         let mut features = Vec::<ClientFeature>::with_capacity(wire.features.len());
         let mut rejections = HashSet::new();
 
@@ -93,7 +93,7 @@ mod tests {
         }
         "#;
 
-        let wire: WireClientsFeatures = serde_json::from_str(raw_json).unwrap();
+        let wire: WireClientFeatures = serde_json::from_str(raw_json).unwrap();
         let snapshot = SanitizedFeatures::try_from(wire);
         assert!(snapshot.is_err());
     }
@@ -119,7 +119,7 @@ mod tests {
         }
         "#;
 
-        let wire: WireClientsFeatures =
+        let wire: WireClientFeatures =
             serde_json::from_str(raw_json).expect("Unparsable JSON, oops you broke the test");
         let snapshot =
             SanitizedFeatures::try_from(wire).expect("Bad snapshot, did you break type contract?");
@@ -155,7 +155,7 @@ mod tests {
         let parsed =
             serde_json::from_str::<ClientFeatures>(&raw_json).expect("Failed to parse JSON");
 
-        let wire: WireClientsFeatures =
+        let wire: WireClientFeatures =
             serde_json::from_str(&raw_json).expect("Failed to parse JSON");
 
         let snapshot = SanitizedFeatures::try_from(wire).expect("Failed to create snapshot");
