@@ -2,7 +2,14 @@ use serde::{de::Error, Deserialize};
 use serde_json::Value;
 use std::collections::HashSet;
 
-use crate::client_features::{ClientFeature, ClientFeatures, Meta, Query, Segment};
+use crate::client_features::{
+    ClientFeature, ClientFeatures, ClientFeaturesDelta, DeltaEvent, Meta, Query, Segment,
+};
+
+enum ParseFeatureError {
+    MissingName,
+    InvalidFeature(String),
+}
 
 // One way trip - you use this to resolve a potentially partially broken set
 // of client features from a serialized format. This will only deal with broken
@@ -21,9 +28,44 @@ pub struct WireClientFeatures {
     meta: Option<Meta>,
 }
 
+#[derive(Deserialize)]
+pub struct WireClientFeaturesDelta {
+    events: Vec<Value>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct WireHydration {
+    event_id: u32,
+    features: Vec<Value>,
+    segments: Vec<Segment>,
+}
+
 pub struct SanitizedFeatures {
     pub valid_features: ClientFeatures,
     pub rejected_features: HashSet<String>,
+}
+
+pub struct SanitizedClientFeatureDelta {
+    pub valid_events: ClientFeaturesDelta,
+    pub rejected_features: HashSet<String>,
+}
+
+pub struct SanitizedClientFeaturesDelta {
+    pub delta_set: ClientFeaturesDelta,
+    pub rejected_features: HashSet<String>,
+}
+
+impl DeltaEvent {
+    fn feature_touched(&self) -> Option<&str> {
+        match self {
+            DeltaEvent::FeatureUpdated { feature, .. } => Some(&feature.name),
+            DeltaEvent::FeatureRemoved {
+                feature_name: name, ..
+            } => Some(name),
+            _ => None,
+        }
+    }
 }
 
 impl TryFrom<WireClientFeatures> for SanitizedFeatures {
@@ -36,25 +78,19 @@ impl TryFrom<WireClientFeatures> for SanitizedFeatures {
         // This isn't worth the dependency of itertools nor the complexity of
         // a folding collect approach. Leave it alone, please
         for value in wire.features.into_iter() {
-            let name = value
-                .get("name")
-                .and_then(Value::as_str)
-                .ok_or_else(|| {
-                    // What was passed is so broken that we can't even identify which features
-                    // are borked. We're tapping out here and failing - error is correct here,
-                    // the caller can't make use of this now since it can't identify which feature to
-                    // cache evict. It either needs to ask for a full new set or rely on it's current
-                    // state, neither of which is helped by continuing to parse at this point.
-                    serde_json::Error::custom(format!(
-                        "Feature has no valid name and parsing cannot recover, raw JSON: {value}"
-                    ))
-                })?
-                .to_owned();
-
-            match serde_json::from_value::<ClientFeature>(value) {
+            match parse_feature(value) {
                 Ok(feature) => features.push(feature),
-                Err(_) => {
-                    rejections.insert(name.clone());
+                Err(ParseFeatureError::MissingName) => {
+                    // If the feature has no name, we reject the entire set.
+                    // It's not safe to continue now, and making assumptions here
+                    // is dangerous. The caller can make a decision about whether
+                    // or not to request a new feature set or fall back to a known good state
+                    return Err(serde_json::Error::custom(
+                        "Feature has no valid name and parsing cannot recover",
+                    ));
+                }
+                Err(ParseFeatureError::InvalidFeature(name)) => {
+                    rejections.insert(name);
                 }
             }
         }
@@ -70,6 +106,86 @@ impl TryFrom<WireClientFeatures> for SanitizedFeatures {
             rejected_features: rejections,
         })
     }
+}
+
+impl TryFrom<WireClientFeaturesDelta> for SanitizedClientFeaturesDelta {
+    type Error = serde_json::Error;
+
+    fn try_from(wire: WireClientFeaturesDelta) -> Result<Self, Self::Error> {
+        let mut valid_events = Vec::with_capacity(wire.events.len());
+        let mut rejected_features = HashSet::new();
+
+        for raw in wire.events {
+            let event = if raw.get("type").and_then(Value::as_str) == Some("hydration") {
+                let hydration: WireHydration = serde_json::from_value(raw)?;
+                let (features, rejections) = parse_hydration_features(hydration.features)?;
+
+                rejected_features = rejections;
+
+                DeltaEvent::Hydration {
+                    event_id: hydration.event_id,
+                    features,
+                    segments: hydration.segments,
+                }
+            } else {
+                serde_json::from_value::<DeltaEvent>(raw)?
+            };
+
+            // An event has overridden a corrupted feature in the original hydration event
+            // In this case, we can know that, while the hydration event is corrupted, the
+            // override unambiguously repairs the state since it's a full override.
+            // This shouldn't happen because we shouldn't get hydration events that are
+            // mixed in with deltas. But given the data structure allows it, it's going to happen
+            if let Some(feature_name) = event.feature_touched() {
+                rejected_features.remove(feature_name);
+            }
+
+            valid_events.push(event);
+        }
+        Ok(SanitizedClientFeaturesDelta {
+            delta_set: ClientFeaturesDelta {
+                events: valid_events,
+            },
+            rejected_features,
+        })
+    }
+}
+
+fn parse_hydration_features(
+    raw: Vec<Value>,
+) -> Result<(Vec<ClientFeature>, HashSet<String>), serde_json::Error> {
+    let mut features = Vec::with_capacity(raw.len());
+    let mut rejections = HashSet::new();
+
+    for value in raw {
+        match parse_feature(value) {
+            Ok(feature) => features.push(feature),
+            Err(ParseFeatureError::InvalidFeature(name)) => {
+                rejections.insert(name);
+            }
+            Err(ParseFeatureError::MissingName) => {
+                return Err(serde_json::Error::custom("feature missing name"));
+            }
+        }
+    }
+
+    Ok((features, rejections))
+}
+
+fn parse_feature(value: Value) -> Result<ClientFeature, ParseFeatureError> {
+    let name = value
+        .get("name")
+        .and_then(Value::as_str)
+        .ok_or_else(|| {
+            // What was passed is so broken that we can't even identify which feature
+            // is broken. This is a special error case that the caller needs to know about
+            // because it makes recovery impossible
+            ParseFeatureError::MissingName
+        })?
+        .to_owned();
+
+    serde_json::from_value::<ClientFeature>(value)
+        .map_err(|_| ParseFeatureError::InvalidFeature(name))
 }
 
 #[cfg(test)]
@@ -176,5 +292,159 @@ mod tests {
 
         assert_eq!(parsed, parsed_and_scrubbed);
         assert_eq!(direct_byte_buffer, indirect_byte_buffer);
+    }
+
+    #[test]
+    fn test_hydration_event_containing_a_feature_with_a_missing_name_is_rejected() {
+        let raw_json = r#"
+        {
+            "events": [
+                {
+                    "eventId": 1,
+                    "type": "hydration",
+                    "segments": [],
+                    "features": [
+                        {
+                            "enabled": true
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
+
+        let parsed = serde_json::from_str::<WireClientFeaturesDelta>(&raw_json);
+        let maybe_sanitized =
+            SanitizedClientFeaturesDelta::try_from(parsed.expect("Failed to parse JSON"));
+
+        assert!(
+            maybe_sanitized.is_err(),
+            "Expected the feature with a missing name to be rejected"
+        );
+    }
+
+    #[test]
+    fn test_hydration_event_containing_a_bad_feature_with_a_name_is_flagged_as_invalid_but_passes_sanitization(
+    ) {
+        let raw_json = r#"
+        {
+            "events": [
+                {
+                    "eventId": 1,
+                    "type": "hydration",
+                    "segments": [],
+                    "features": [
+                        {
+                            "name": "test_name",
+                            "enabled": "This should be a boolean"
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
+
+        let parsed = serde_json::from_str::<WireClientFeaturesDelta>(&raw_json)
+            .expect("Expected parsing to succeed");
+
+        let maybe_sanitized = SanitizedClientFeaturesDelta::try_from(parsed);
+
+        assert!(
+            maybe_sanitized.is_ok(),
+            "Expected sanitization to succeed even with a bad feature"
+        );
+        assert!(
+            maybe_sanitized.unwrap().rejected_features.len() == 1,
+            "Expected the bad feature to be flagged as invalid"
+        );
+    }
+
+    #[test]
+    fn test_hydration_event_does_not_flag_feature_when_fixed_by_subsequent_event() {
+        let raw_json = r#"
+        {
+            "events": [
+                {
+                    "eventId": 1,
+                    "type": "hydration",
+                    "segments": [],
+                    "features": [
+                        {
+                            "name": "test_name",
+                            "enabled": "This should be a boolean"
+                        }
+                    ]
+                },
+                {
+                    "eventId": 2,
+                    "type": "hydration",
+                    "segments": [],
+                    "features": [
+                        {
+                            "name": "test_name",
+                            "enabled": true
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
+
+        let parsed = serde_json::from_str::<WireClientFeaturesDelta>(&raw_json)
+            .expect("Expected parsing to succeed");
+
+        let maybe_sanitized = SanitizedClientFeaturesDelta::try_from(parsed);
+
+        assert!(
+            maybe_sanitized.is_ok(),
+            "Expected sanitization to succeed even with a bad feature fixed by subsequent event"
+        );
+        assert!(
+            maybe_sanitized.unwrap().rejected_features.is_empty(),
+            "Expected no features to be rejected since the bad feature was fixed"
+        );
+    }
+
+    #[test]
+    fn test_a_bad_non_hydration_event_fails_to_parse() {
+        let raw_json = r#"
+        {
+            "events": [
+                {
+                    "eventId": 1,
+                    "type": "feature-updated",
+                    "segments": [],
+                    "features": [
+                        {
+                            "name": "test_name",
+                            "enabled": "This should be a boolean"
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
+
+        let maybe_parsed: Result<SanitizedClientFeaturesDelta, _> =
+            serde_json::from_str::<WireClientFeaturesDelta>(&raw_json)
+                .expect("Rejected by serde")
+                .try_into();
+
+        assert!(
+            maybe_parsed.is_err(),
+            "Expected parsing to fail for a bad non-hydration event"
+        );
+    }
+
+    #[test_case("delta_base.json")]
+    #[test_case("delta_patch.json")]
+    fn delta_smoke_tests(path: &str) {
+        let raw_json = std::fs::read_to_string(format!("./examples/{}", &path))
+            .expect("Failed to read example file");
+
+        SanitizedClientFeaturesDelta::try_from(
+            serde_json::from_str::<WireClientFeaturesDelta>(&raw_json).expect("Rejected by serde"),
+        )
+        .expect("Failed to sanitize client features delta");
     }
 }
