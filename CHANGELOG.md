@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.4](https://github.com/Unleash/unleash-types-rs/compare/v0.16.3...v0.16.4) - 2026-11-24
+
+### 🚀 Features
+- expose a safe path for delta parsing ([#166](https://github.com/unleash/unleash-types-rs/issues/166)) (by @sighphyre) - #166
+- expose a path for partial parsing of client features ([#164](https://github.com/unleash/unleash-types-rs/issues/164)) (by @sighphyre) - #164
+
+### Dependency updates
+- bump actions/create-github-app-token from 2 to 3 ([#145](https://github.com/unleash/unleash-types-rs/issues/145)) (by @dependabot[bot]) - #145
+
+### ⚙️ Miscellaneous Tasks
+- updated to utoipa 6 ([#160](https://github.com/unleash/unleash-types-rs/issues/160)) (by @chriswk) - #160
+
+### Contributors
+
+* @sighphyre
+* @dependabot[bot]
+* @chriswk
+
 ## [0.16.3](https://github.com/Unleash/unleash-types-rs/compare/v0.16.2...v0.16.3) - 2026-10-27
 
 ### 🚀 Features
