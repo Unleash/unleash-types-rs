@@ -29,7 +29,7 @@ pub struct WireClientFeatures {
 }
 
 #[derive(Deserialize)]
-struct WireClientFeaturesDelta {
+pub struct WireClientFeaturesDelta {
     events: Vec<Value>,
 }
 
