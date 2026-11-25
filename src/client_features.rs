@@ -532,6 +532,13 @@ pub struct ClientFeatures {
     pub meta: Option<Meta>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum UpdateMessage {
+    FullResponse(ClientFeatures),
+    PartialUpdate(ClientFeaturesDelta),
+}
+
 #[cfg(feature = "hashes")]
 impl ClientFeatures {
     ///
