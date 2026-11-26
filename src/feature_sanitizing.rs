@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use crate::client_features::{
     ClientFeature, ClientFeatures, ClientFeaturesDelta, DeltaEvent, Meta, Query, Segment,
+    UpdateMessage,
 };
 
 enum ParseFeatureError {
@@ -41,19 +42,49 @@ struct WireHydration {
     segments: Vec<Segment>,
 }
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum WireUpdateMessage {
+    FullResponse(WireClientFeatures),
+    PartialUpdate(WireClientFeaturesDelta),
+}
+
 pub struct SanitizedFeatures {
     pub valid_features: ClientFeatures,
     pub rejected_features: HashSet<String>,
 }
 
-pub struct SanitizedClientFeatureDelta {
-    pub valid_events: ClientFeaturesDelta,
+struct SanitizedClientFeaturesDelta {
+    delta_set: ClientFeaturesDelta,
+    rejected_features: HashSet<String>,
+}
+
+pub struct SanitizedUpdateMessage {
+    pub update: UpdateMessage,
     pub rejected_features: HashSet<String>,
 }
 
-pub struct SanitizedClientFeaturesDelta {
-    pub delta_set: ClientFeaturesDelta,
-    pub rejected_features: HashSet<String>,
+impl TryFrom<WireUpdateMessage> for SanitizedUpdateMessage {
+    type Error = serde_json::Error;
+
+    fn try_from(wire: WireUpdateMessage) -> Result<Self, Self::Error> {
+        match wire {
+            WireUpdateMessage::FullResponse(full) => {
+                let sanitized = SanitizedFeatures::try_from(full)?;
+                Ok(Self {
+                    update: UpdateMessage::FullResponse(sanitized.valid_features),
+                    rejected_features: sanitized.rejected_features,
+                })
+            }
+            WireUpdateMessage::PartialUpdate(delta) => {
+                let sanitized = SanitizedClientFeaturesDelta::try_from(delta)?;
+                Ok(Self {
+                    update: UpdateMessage::PartialUpdate(sanitized.delta_set),
+                    rejected_features: sanitized.rejected_features,
+                })
+            }
+        }
+    }
 }
 
 impl DeltaEvent {
@@ -446,5 +477,32 @@ mod tests {
             serde_json::from_str::<WireClientFeaturesDelta>(&raw_json).expect("Rejected by serde"),
         )
         .expect("Failed to sanitize client features delta");
+    }
+
+    #[test_case("01-simple-examples.json")]
+    #[test_case("08-variants.json")]
+    #[test_case("13-constraint-operators.json")]
+    #[test_case("14-constraint-semver-operators.json")]
+    #[test_case("15-global-constraints.json")]
+    #[test_case("16-strategy-variants.json")]
+    #[test_case("17-dependent-features.json")]
+    #[test_case("demofeatures.json")]
+    #[test_case("features_with_variantType.json")]
+    #[test_case("nuno-response.json")]
+    #[test_case("delta_base.json")]
+    #[test_case("delta_patch.json")]
+    fn test_client_features_update_smoke_test(path: &str) {
+        let raw_json = std::fs::read_to_string(format!("./examples/{}", &path))
+            .expect("Failed to read example file");
+
+        let parsed = serde_json::from_str::<WireUpdateMessage>(&raw_json)
+            .expect("Expected parsing to succeed");
+
+        let maybe_sanitized = SanitizedUpdateMessage::try_from(parsed);
+        assert!(maybe_sanitized.is_ok(), "Expected sanitization to succeed");
+        assert!(
+            maybe_sanitized.unwrap().rejected_features.is_empty(),
+            "Expected no invalid features"
+        );
     }
 }
