@@ -49,9 +49,9 @@ pub enum WireUpdateMessage {
     PartialUpdate(WireClientFeaturesDelta),
 }
 
-struct SanitizedFeatures {
-    valid_features: ClientFeatures,
-    rejected_features: HashSet<String>,
+pub struct SanitizedFeatures {
+    pub valid_features: ClientFeatures,
+    pub rejected_features: HashSet<String>,
 }
 
 struct SanitizedClientFeaturesDelta {
