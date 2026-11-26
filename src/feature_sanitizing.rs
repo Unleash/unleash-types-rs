@@ -55,8 +55,8 @@ struct SanitizedFeatures {
 }
 
 struct SanitizedClientFeaturesDelta {
-    pub delta_set: ClientFeaturesDelta,
-    pub rejected_features: HashSet<String>,
+    delta_set: ClientFeaturesDelta,
+    rejected_features: HashSet<String>,
 }
 
 pub struct SanitizedUpdateMessage {
